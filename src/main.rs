@@ -1,3 +1,9 @@
+mod gameboy;
+
+use gameboy::Gameboy;
+
 fn main() {
-    println!("Hello, world!");
+    let gb: Gameboy = Gameboy::new();
+
+    gb.dump_bios();
 }
