@@ -58,6 +58,14 @@ impl Instructions {
     pub fn ld_n(reg: &mut u8, v: u8) {
         *reg = v;
     }
+
+    pub fn xor(a_reg: &mut u8, f_reg: &mut FRegister, v: u8) {
+        *a_reg ^= v;
+        f_reg.zero = *a_reg == 0;
+        f_reg.substract = false;
+        f_reg.half_carry = false;
+        f_reg.carry = false;
+    }
 }
 
 // TODO: Move to another file
