@@ -1,8 +1,8 @@
 pub struct FRegister {
-    zero: bool,
-    substract: bool,
-    half_carry: bool,
-    carry: bool,
+    pub zero: bool,
+    pub substract: bool,
+    pub half_carry: bool,
+    pub carry: bool,
 }
 
 impl FRegister {
@@ -17,16 +17,16 @@ impl FRegister {
 }
 
 pub struct Registers {
-    a: u8,
-    b: u8,
-    c: u8,
-    d: u8,
-    e: u8,
-    f: FRegister,
-    h: u8,
-    l: u8,
-    sp: u16,
-    pc: u16,
+    pub a: u8,
+    pub b: u8,
+    pub c: u8,
+    pub d: u8,
+    pub e: u8,
+    pub f: FRegister,
+    pub h: u8,
+    pub l: u8,
+    pub sp: u16,
+    pub pc: u16,
 }
 
 impl Registers {

@@ -3,7 +3,8 @@ mod gameboy;
 use gameboy::Gameboy;
 
 fn main() {
-    let gb: Gameboy = Gameboy::new();
+    let gb: &mut Gameboy = &mut Gameboy::new();
 
-    gb.dump_bios();
+    gb.power_up();
+    gb.cycle();
 }

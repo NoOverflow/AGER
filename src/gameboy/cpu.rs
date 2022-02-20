@@ -1,23 +1,20 @@
+use super::memory::Memory;
 use super::registers::Registers;
 
 pub struct Cpu {
-    bios: &'static [u8; 256],
-    registers: Registers,
+    pub registers: Registers,
 }
 
 impl Cpu {
     pub fn new() -> Self {
         Cpu {
-            bios: include_bytes!("../../res/bios.bin"),
             registers: Registers::new(),
         }
     }
 
-    pub fn dump_bios(&self) {
-        for i in 0..255 {
-            print!("{:#02x} ", self.bios[i]);
-        }
-    }
+    pub fn cycle(&mut self, mem: &mut Memory) {
+        let inst_op_code: u8 = mem.read_u8(self.registers.pc as usize);
 
-    pub fn cycle(&mut self) {}
+        println!("Executing OpCode: {:#02x}", inst_op_code);
+    }
 }
