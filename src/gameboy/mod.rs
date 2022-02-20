@@ -1,3 +1,4 @@
+pub mod bin_utils;
 pub mod cpu;
 pub mod memory;
 pub mod registers;
