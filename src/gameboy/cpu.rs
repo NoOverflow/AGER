@@ -1,3 +1,4 @@
+use super::bin_utils::BinUtils;
 use super::memory::Memory;
 use super::registers::FRegister;
 use super::registers::Registers;
@@ -50,7 +51,11 @@ impl Cpu {
 
 struct Instructions {}
 impl Instructions {
-    pub fn ld(reg: &mut u16, flags: &mut FRegister, v: u16) {
+    pub fn ld_nn(reg: &mut u16, v: u16) {
+        *reg = v;
+    }
+
+    pub fn ld_n(reg: &mut u8, v: u8) {
         *reg = v;
     }
 }
