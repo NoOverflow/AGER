@@ -71,6 +71,10 @@ impl Instructions {
         f_reg.substract = false;
         f_reg.half_carry = true;
     }
+
+    pub fn jr_n(offset: i8, pc: &mut u16) {
+        *pc = pc.wrapping_add(offset as u16);
+    }
 }
 
 // TODO: Move to another file
