@@ -13,6 +13,10 @@ pub struct Memory {
 
     // Memory
     rom: [u8; 0x8000],
+    vram: [u8; 0x2000],
+
+    // Special Registers
+    nr11: u8,
 }
 
 impl Memory {
@@ -54,14 +58,29 @@ impl Memory {
 
             // Memory
             rom: [0; 0x8000],
+            vram: [0; 0x2000],
+
+            // Special registers
+            nr11: 0,
+        }
+    }
+
+    fn write_io_u8(&mut self, value: u8, address: usize) {
+        match address {
+            0xFF11 => self.nr11 = value,
+            _ => {}
         }
     }
 
     pub fn write_u8(&mut self, value: u8, address: usize) {
         if self.rom_address_bound.contains(&address) {
             self.rom[address - self.rom_address_bound.start] = value;
+        } else if self.vram_address_bound.contains(&address) {
+            self.vram[address - self.vram_address_bound.start] = value;
+        } else if self.io_address_bound.contains(&address) {
+            self.write_io_u8(value, address);
         } else {
-            panic!("unimplemented memory address");
+            panic!("{:#02x} is not an implemented memory address", address);
         }
     }
 
@@ -69,7 +88,7 @@ impl Memory {
         if self.rom_address_bound.contains(&address) {
             return self.rom[address - self.rom_address_bound.start];
         } else {
-            panic!("unimplemented memory address");
+            panic!("{:#02x} is not an implemented memory address", address);
         }
     }
 }
