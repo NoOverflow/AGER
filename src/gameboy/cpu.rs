@@ -28,6 +28,19 @@ impl Cpu {
         return high << 8 | low;
     }
 
+    pub fn push(&mut self, mem: &mut Memory, v: u8) {
+        self.registers.sp -= 1;
+        mem.write_u8(v, self.registers.sp as usize);
+    }
+
+    pub fn push_word(&mut self, mem: &mut Memory, v: u16) {
+        let u8s: (u8, u8) = BinUtils::u8s_from_u16(v);
+
+        // Store LS Byte first
+        self.push(mem, u8s.1);
+        self.push(mem, u8s.0);
+    }
+
     fn call_extended(&mut self, mem: &mut Memory, op_code: u8) {
         match op_code {
             0x7C => {
