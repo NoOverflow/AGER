@@ -66,6 +66,11 @@ impl Instructions {
         f_reg.half_carry = false;
         f_reg.carry = false;
     }
+    pub fn bit(bit: u8, reg: u8, f_reg: &mut FRegister) {
+        f_reg.zero = (reg & (1 << bit)) == 0;
+        f_reg.substract = false;
+        f_reg.half_carry = true;
+    }
 }
 
 // TODO: Move to another file
