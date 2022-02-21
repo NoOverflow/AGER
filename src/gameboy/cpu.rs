@@ -66,6 +66,15 @@ impl Instructions {
         f_reg.half_carry = false;
         f_reg.carry = false;
     }
+
+    pub fn dec_nn(high_reg: &mut u8, low_reg: &mut u8) {
+        let v: u16 = BinUtils::u16_from_u8s(*high_reg, *low_reg);
+        let vs: (u8, u8) = BinUtils::u8s_from_u16(v - 1);
+
+        *high_reg = vs.0;
+        *low_reg = vs.1;
+    }
+
     pub fn bit(bit: u8, reg: u8, f_reg: &mut FRegister) {
         f_reg.zero = (reg & (1 << bit)) == 0;
         f_reg.substract = false;
