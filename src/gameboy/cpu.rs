@@ -28,14 +28,49 @@ impl Cpu {
         return high << 8 | low;
     }
 
-    fn call_extended(&mut self, mem: &mut Memory, op_code: u8) {}
+    fn call_extended(&mut self, mem: &mut Memory, op_code: u8) {
+        match op_code {
+            0x7C => {
+                Instructions::bit(7, self.registers.h, &mut self.registers.f);
+            }
+            _ => panic!("{:#02x} is not an implemented extended opcode.", op_code),
+        }
+    }
 
     fn call(&mut self, mem: &mut Memory, op_code: u8) {
         match op_code {
+            0x20 => {
+                let offset: i8 = self.fetch_u8(mem) as i8;
+
+                if !self.registers.f.zero {
+                    Instructions::jr_n(offset, &mut self.registers.pc);
+                }
+            }
+            0x21 => {
+                self.registers.l = self.fetch_u8(mem);
+                self.registers.h = self.fetch_u8(mem);
+            }
             0x31 => {
                 let v: u16 = self.fetch_u16(mem);
 
-                Instructions::ld(&mut self.registers.sp, &mut self.registers.f, v);
+                Instructions::ld_nn(&mut self.registers.sp, v);
+            }
+            0x32 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.h);
+
+                mem.write_u8(self.registers.a, address as usize);
+                Instructions::dec_nn(&mut self.registers.h, &mut self.registers.l);
+            }
+            0xAF => {
+                let v: u8 = self.registers.a;
+
+                Instructions::xor(&mut self.registers.a, &mut self.registers.f, v);
+            }
+            0xCB => {
+                let extended_op_code: u8 = self.fetch_u8(mem);
+
+                println!("Executing extended OpCode: {:#02x}", extended_op_code);
+                self.call_extended(mem, extended_op_code);
             }
             _ => panic!("{:#02x} is not an implemented opcode.", op_code),
         }
