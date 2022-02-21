@@ -21,35 +21,35 @@ impl Memory {
             // Memory bounds
             rom_address_bound: Range {
                 start: 0x0000,
-                end: 0x7FFF,
+                end: 0x8000,
             },
             vram_address_bound: Range {
                 start: 0x8000,
-                end: 0x9FFF,
+                end: 0xA000,
             },
             sram8_address_bound: Range {
                 start: 0xA000,
-                end: 0xBFFF,
+                end: 0xC000,
             },
             iram8_address_bound: Range {
                 start: 0xC000,
-                end: 0xDFFF,
+                end: 0xE000,
             },
             iram8_echo_address_bound: Range {
                 start: 0xE000,
-                end: 0xFDFF,
+                end: 0xFE00,
             },
             sam_address_bound: Range {
                 start: 0xFE00,
-                end: 0xFE9F,
+                end: 0xFEA0,
             },
             io_address_bound: Range {
                 start: 0xFF00,
-                end: 0xFF4B,
+                end: 0xFF4C,
             },
             iram_address_bound: Range {
                 start: 0xFF80,
-                end: 0xFFFE,
+                end: 0xFFFF,
             },
 
             // Memory
