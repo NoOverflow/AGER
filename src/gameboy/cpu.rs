@@ -145,6 +145,16 @@ impl Instructions {
     pub fn jr_n(offset: i8, pc: &mut u16) {
         *pc = pc.wrapping_add(offset as u16);
     }
+    pub fn sub(a_reg: &mut u8, v: u8, f_reg: &mut FRegister) {
+        let result: u8 = a_reg.wrapping_sub(v);
+
+        f_reg.zero = result == 0;
+        f_reg.substract = true;
+        // ((*a_reg & 0xF) - (v & 0xF)) & 0x10 != 0 ?
+        f_reg.half_carry = (*a_reg & 0xF) < (v & 0xF);
+        f_reg.carry = *a_reg < v;
+        *a_reg = result;
+    }
 }
 
 // TODO: Move to another file
