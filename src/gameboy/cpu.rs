@@ -145,6 +145,16 @@ impl Instructions {
     pub fn jr_n(offset: i8, pc: &mut u16) {
         *pc = pc.wrapping_add(offset as u16);
     }
+    pub fn rlc(reg: &mut u8, f_reg: &mut FRegister) {
+        let carry: bool = *reg & 0x80 == 0x80;
+
+        *reg = (*reg << 1) | (if carry { 1 } else { 0 });
+        f_reg.zero = *reg == 0;
+        f_reg.substract = false;
+        f_reg.half_carry = false;
+        f_reg.carry = carry;
+    }
+
     pub fn rl(reg: &mut u8, f_reg: &mut FRegister) {
         let carry: bool = *reg & 0x80 == 0x80;
 
