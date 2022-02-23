@@ -12,9 +12,11 @@ pub struct Memory {
     iram_address_bound: Range<usize>,
 
     // Memory
+    boot: &'static [u8; 256],
     rom: [u8; 0x8000],
     vram: [u8; 0x2000],
 
+    pub is_booting: bool,
     // Special Registers
     nr11: u8,
 }
@@ -56,7 +58,10 @@ impl Memory {
                 end: 0xFFFF,
             },
 
+            is_booting: false,
+
             // Memory
+            boot: include_bytes!("../../res/boot.bin"),
             rom: [0; 0x8000],
             vram: [0; 0x2000],
 
@@ -86,6 +91,10 @@ impl Memory {
 
     pub fn read_u8(&mut self, address: usize) -> u8 {
         if self.rom_address_bound.contains(&address) {
+            if self.is_booting && address <= 0xFF {
+                // During boot, any read from value 0x0 to 0xFF is redirected to the boot rom
+                return self.boot[address];
+            }
             return self.rom[address - self.rom_address_bound.start];
         } else {
             panic!("{:#02x} is not an implemented memory address", address);

@@ -7,7 +7,6 @@ use cpu::Cpu;
 use memory::Memory;
 
 pub struct Gameboy {
-    boot: &'static [u8; 256],
     cpu: Cpu,
     mem_map: Memory,
 }
@@ -15,7 +14,6 @@ pub struct Gameboy {
 impl Gameboy {
     pub fn new() -> Self {
         Gameboy {
-            boot: include_bytes!("../../res/boot.bin"),
             cpu: Cpu::new(),
             mem_map: Memory::new(),
         }
@@ -24,6 +22,7 @@ impl Gameboy {
     pub fn power_up(&mut self) {
         self.cpu.registers.pc = 0x0;
         self.mount_boot();
+        self.mem_map.is_booting = true;
     }
 
     pub fn cycle(&mut self) {
