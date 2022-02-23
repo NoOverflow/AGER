@@ -145,6 +145,21 @@ impl Instructions {
     pub fn jr_n(offset: i8, pc: &mut u16) {
         *pc = pc.wrapping_add(offset as u16);
     }
+
+    pub fn inc(reg: &mut u8, f_reg: &mut FRegister) {
+        *reg = (*reg).wrapping_add(1);
+        f_reg.zero = *reg == 0;
+        f_reg.substract = false;
+        f_reg.half_carry = (*reg & 0xF) == 0xF;
+    }
+
+    pub fn inc_nn(high_reg: &mut u8, low_reg: &mut u8) {
+        let v: u16 = BinUtils::u16_from_u8s(*high_reg, *low_reg);
+        let vs: (u8, u8) = BinUtils::u8s_from_u16(v.wrapping_add(1));
+
+        *high_reg = vs.0;
+        *low_reg = vs.1;
+    }
     pub fn rlc(reg: &mut u8, f_reg: &mut FRegister) {
         let carry: bool = *reg & 0x80 == 0x80;
 
