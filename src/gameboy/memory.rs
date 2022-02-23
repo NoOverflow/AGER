@@ -15,6 +15,7 @@ pub struct Memory {
     boot: &'static [u8; 256],
     rom: [u8; 0x8000],
     vram: [u8; 0x2000],
+    iram: [u8; 0x128],
 
     pub is_booting: bool,
     // Special Registers
@@ -68,6 +69,7 @@ impl Memory {
             boot: include_bytes!("../../res/boot.bin"),
             rom: [0; 0x8000],
             vram: [0; 0x2000],
+            iram: [0; 0x128],
 
             // Special registers
             nr11: 0,
@@ -93,15 +95,21 @@ impl Memory {
             _ => panic!("Unknown IO register: {:#02x}", address),
         }
     }
+
     pub fn write_u8(&mut self, value: u8, address: usize) {
         if self.rom_address_bound.contains(&address) {
             self.rom[address - self.rom_address_bound.start] = value;
+        } else if self.iram_address_bound.contains(&address) {
+            self.iram[address - self.iram_address_bound.start] = value;
         } else if self.vram_address_bound.contains(&address) {
             self.vram[address - self.vram_address_bound.start] = value;
         } else if self.io_address_bound.contains(&address) {
             self.write_io_u8(value, address);
         } else {
-            panic!("{:#02x} is not an implemented memory address", address);
+            panic!(
+                "Write: {:#02x} is not an implemented memory address",
+                address
+            );
         }
     }
 
@@ -112,6 +120,9 @@ impl Memory {
                 return self.boot[address];
             }
             return self.rom[address - self.rom_address_bound.start];
+        } else if self.iram_address_bound.contains(&address) {
+            return self.iram[address - self.iram_address_bound.start];
+        } else if self.vram_address_bound.contains(&address) {
         } else {
             panic!("{:#02x} is not an implemented memory address", address);
         }
