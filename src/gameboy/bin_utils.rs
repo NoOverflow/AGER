@@ -5,6 +5,7 @@ impl BinUtils {
         return (low as u16) | ((high as u16) << 8);
     }
 
+    //(High, Low)
     pub fn u8s_from_u16(v: u16) -> (u8, u8) {
         ((v >> 8) as u8, ((v & 0xFF) as u8))
     }

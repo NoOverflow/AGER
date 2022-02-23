@@ -41,6 +41,19 @@ impl Cpu {
         self.push(mem, u8s.0);
     }
 
+    pub fn pop(&mut self, mem: &mut Memory) -> u8 {
+        let v: u8 = mem.read_u8(self.registers.sp as usize);
+
+        self.registers.sp += 1;
+        v
+    }
+
+    pub fn pop_word(&mut self, mem: &mut Memory) -> u16 {
+        let high: u8 = self.pop(mem);
+        let low: u8 = self.pop(mem);
+
+        return BinUtils::u16_from_u8s(high, low);
+    }
     fn call_extended(&mut self, mem: &mut Memory, op_code: u8) {
         match op_code {
             0x7C => {
