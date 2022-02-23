@@ -18,6 +18,8 @@ pub struct Memory {
     iram: [u8; 0x128],
 
     pub is_booting: bool,
+
+    // TODO: Sort this, maybe export ?
     // Special Registers
     //   Sound
     nr11: u8,
@@ -123,8 +125,14 @@ impl Memory {
         } else if self.iram_address_bound.contains(&address) {
             return self.iram[address - self.iram_address_bound.start];
         } else if self.vram_address_bound.contains(&address) {
+            return self.vram[address - self.vram_address_bound.start];
+        } else if self.io_address_bound.contains(&address) {
+            return self.read_io_u8(address);
         } else {
-            panic!("{:#02x} is not an implemented memory address", address);
+            panic!(
+                "Read: {:#02x} is not an implemented memory address",
+                address
+            );
         }
     }
 }
