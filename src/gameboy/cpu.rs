@@ -145,6 +145,16 @@ impl Instructions {
     pub fn jr_n(offset: i8, pc: &mut u16) {
         *pc = pc.wrapping_add(offset as u16);
     }
+    pub fn rl(reg: &mut u8, f_reg: &mut FRegister) {
+        let carry: bool = *reg & 0x80 == 0x80;
+
+        *reg = (*reg << 1) | (if f_reg.carry { 1 } else { 0 });
+        f_reg.zero = *reg == 0;
+        f_reg.substract = false;
+        f_reg.half_carry = false;
+        f_reg.carry = carry;
+    }
+
     pub fn cp(a_reg: u8, v: u8, f_reg: &mut FRegister) {
         f_reg.zero = a_reg == v;
         f_reg.substract = true;
@@ -152,6 +162,7 @@ impl Instructions {
         f_reg.half_carry = (a_reg & 0xF) < (v & 0xF);
         f_reg.carry = a_reg < v;
     }
+
     pub fn sub(a_reg: &mut u8, v: u8, f_reg: &mut FRegister) {
         let result: u8 = a_reg.wrapping_sub(v);
 
