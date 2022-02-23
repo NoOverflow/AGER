@@ -18,7 +18,11 @@ pub struct Memory {
 
     pub is_booting: bool,
     // Special Registers
+    //   Sound
     nr11: u8,
+    //   Graphics
+    ly: u8,
+    scy: u8,
 }
 
 impl Memory {
@@ -67,16 +71,28 @@ impl Memory {
 
             // Special registers
             nr11: 0,
+            ly: 0x90, // TODO: This should be 0 on startup, this is set so that the boot sequence doesn't loop forever
+            scy: 0,
         }
     }
 
     fn write_io_u8(&mut self, value: u8, address: usize) {
         match address {
             0xFF11 => self.nr11 = value,
+            0xFF42 => self.scy = value,
+            0xFF44 => self.ly = value,
             _ => {}
         }
     }
 
+    fn read_io_u8(&mut self, address: usize) -> u8 {
+        match address {
+            0xFF11 => self.nr11,
+            0xFF42 => self.scy,
+            0xFF44 => self.ly,
+            _ => panic!("Unknown IO register: {:#02x}", address),
+        }
+    }
     pub fn write_u8(&mut self, value: u8, address: usize) {
         if self.rom_address_bound.contains(&address) {
             self.rom[address - self.rom_address_bound.start] = value;
