@@ -22,6 +22,7 @@ impl Gameboy {
     pub fn power_up(&mut self) {
         self.cpu.registers.pc = 0x0;
         self.mount_boot();
+        self.cpu.registers.sp = 0xFFFE;
         self.mem_map.is_booting = true;
     }
 
