@@ -119,8 +119,9 @@ impl Cpu {
             }
             0x1A => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.d, self.registers.e);
+                let v: u8 = mem.read_u8(address as usize);
 
-                mem.write_u8(self.registers.a, address as usize);
+                Instructions::ld_n(&mut self.registers.a, v);
             }
             0x1D => {
                 Instructions::dec(&mut self.registers.e, &mut self.registers.f);
