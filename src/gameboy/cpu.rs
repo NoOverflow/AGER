@@ -378,6 +378,7 @@ impl Instructions {
         f_reg.carry = a_reg < v;
     }
 
+    // TODO: Check HC and C flags
     pub fn sub(a_reg: &mut u8, v: u8, f_reg: &mut FRegister) {
         let result: u8 = a_reg.wrapping_sub(v);
 
@@ -386,6 +387,17 @@ impl Instructions {
         // ((*a_reg & 0xF) - (v & 0xF)) & 0x10 != 0 ?
         f_reg.half_carry = (*a_reg & 0xF) < (v & 0xF);
         f_reg.carry = *a_reg < v;
+        *a_reg = result;
+    }
+
+    // TODO: Check HC and C flags
+    pub fn add(a_reg: &mut u8, v: u8, f_reg: &mut FRegister) {
+        let result: u8 = a_reg.wrapping_add(v);
+
+        f_reg.zero = result == 0;
+        f_reg.substract = false;
+        f_reg.half_carry = ((*a_reg & 0xF) + (v & 0xF)) & 0x10 != 0;
+        f_reg.carry = *a_reg > 255 - v;
         *a_reg = result;
     }
 }
