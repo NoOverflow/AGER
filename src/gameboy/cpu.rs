@@ -199,11 +199,23 @@ impl Cpu {
 
                 mem.write_u8(self.registers.a, address as usize);
             }
+            0x78 => {
+                Instructions::ld_n(&mut self.registers.a, self.registers.b);
+            }
             0x7B => {
                 Instructions::ld_n(&mut self.registers.a, self.registers.e);
             }
             0x7C => {
                 Instructions::ld_n(&mut self.registers.a, self.registers.h);
+            }
+            0x7D => {
+                Instructions::ld_n(&mut self.registers.a, self.registers.l);
+            }
+            0x86 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::add(&mut self.registers.a, v, &mut self.registers.f);
             }
             0x90 => {
                 Instructions::sub(
@@ -281,7 +293,11 @@ impl Cpu {
 
                 Instructions::cp(self.registers.a, v, &mut self.registers.f);
             }
-            _ => panic!("{:#02x} is not an implemented opcode.", op_code),
+            _ => panic!(
+                "{:#02x} is not an implemented opcode. (PC={:#02x})",
+                op_code,
+                self.registers.pc - 1
+            ),
         }
     }
 
