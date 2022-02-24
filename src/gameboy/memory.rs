@@ -1,3 +1,5 @@
+use super::mbc::mbc0::MBC0;
+use super::mbc::MemoryBankController;
 use std::ops::Range;
 
 pub struct Memory {
@@ -13,7 +15,7 @@ pub struct Memory {
 
     // Memory
     boot: &'static [u8; 256],
-    rom: [u8; 0x8000],
+    pub rom: Box<dyn MemoryBankController>,
     vram: [u8; 0x2000],
     iram: [u8; 0x128],
 
@@ -69,7 +71,7 @@ impl Memory {
 
             // Memory
             boot: include_bytes!("../../res/boot.bin"),
-            rom: [0; 0x8000],
+            rom: Box::new(MBC0::new([].to_vec())), // By default we "load" a MBC0
             vram: [0; 0x2000],
             iram: [0; 0x128],
 
@@ -121,7 +123,7 @@ impl Memory {
                 // During boot, any read from value 0x0 to 0xFF is redirected to the boot rom
                 return self.boot[address];
             }
-            return self.rom[address - self.rom_address_bound.start];
+            return self.rom.read_u8(address);
         } else if self.iram_address_bound.contains(&address) {
             return self.iram[address - self.iram_address_bound.start];
         } else if self.vram_address_bound.contains(&address) {
