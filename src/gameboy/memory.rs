@@ -19,10 +19,10 @@ pub struct Memory {
     vram: [u8; 0x2000],
     iram: [u8; 0x128],
 
-    pub is_booting: bool,
-
     // TODO: Sort this, maybe export ?
     // Special Registers
+    boot_rom_enable: u8,
+
     //   Sound
     nr11: u8,
     //   Graphics
@@ -67,8 +67,6 @@ impl Memory {
                 end: 0xFFFF,
             },
 
-            is_booting: false,
-
             // Memory
             boot: include_bytes!("../../res/boot.bin"),
             rom: Box::new(MBC0::new([].to_vec())), // By default we "load" a MBC0
@@ -76,17 +74,21 @@ impl Memory {
             iram: [0; 0x128],
 
             // Special registers
+            boot_rom_enable: 0,
             nr11: 0,
             ly: 0x90, // TODO: This should be 0 on startup, this is set so that the boot sequence doesn't loop forever
             scy: 0,
         }
     }
 
-    fn write_io_u8(&mut self, value: u8, address: usize) {
+    pub fn write_io_u8(&mut self, value: u8, address: usize) {
         match address {
             0xFF11 => self.nr11 = value,
             0xFF42 => self.scy = value,
             0xFF44 => self.ly = value,
+
+            // This is a special register used by the boot rom
+            0xFF50 => self.boot_rom_enable = value,
             _ => {}
         }
     }
@@ -96,18 +98,21 @@ impl Memory {
             0xFF11 => self.nr11,
             0xFF42 => self.scy,
             0xFF44 => self.ly,
+
+            // This is a special register used by the boot rom
+            0xFF50 => self.boot_rom_enable,
             _ => panic!("Unknown IO register: {:#02x}", address),
         }
     }
 
     pub fn write_u8(&mut self, value: u8, address: usize) {
         if self.rom_address_bound.contains(&address) {
-            self.rom[address - self.rom_address_bound.start] = value;
+            self.rom.write_u8(address, value);
         } else if self.iram_address_bound.contains(&address) {
             self.iram[address - self.iram_address_bound.start] = value;
         } else if self.vram_address_bound.contains(&address) {
             self.vram[address - self.vram_address_bound.start] = value;
-        } else if self.io_address_bound.contains(&address) {
+        } else if address == 0xFF50 || self.io_address_bound.contains(&address) {
             self.write_io_u8(value, address);
         } else {
             panic!(
@@ -119,7 +124,7 @@ impl Memory {
 
     pub fn read_u8(&mut self, address: usize) -> u8 {
         if self.rom_address_bound.contains(&address) {
-            if self.is_booting && address <= 0xFF {
+            if self.boot_rom_enable != 0 && address <= 0xFF {
                 // During boot, any read from value 0x0 to 0xFF is redirected to the boot rom
                 return self.boot[address];
             }

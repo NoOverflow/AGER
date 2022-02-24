@@ -1,5 +1,6 @@
 pub mod bin_utils;
 pub mod cpu;
+pub mod mbc;
 pub mod memory;
 pub mod registers;
 
@@ -14,6 +15,8 @@ use std::io::prelude::*;
 pub struct Gameboy {
     cpu: Cpu,
     mem_map: Memory,
+
+    stop: bool,
 }
 
 impl Gameboy {
@@ -21,6 +24,7 @@ impl Gameboy {
         Gameboy {
             cpu: Cpu::new(),
             mem_map: Memory::new(),
+            stop: false,
         }
     }
 
@@ -45,10 +49,16 @@ impl Gameboy {
     pub fn power_up(&mut self) {
         self.cpu.registers.pc = 0x0;
         self.cpu.registers.sp = 0xFFFE;
-        self.mem_map.is_booting = true;
+        self.mem_map.write_io_u8(0x01, 0xFF50);
     }
 
     pub fn cycle(&mut self) {
-        self.cpu.cycle(&mut self.mem_map);
+        if !self.stop {
+            self.cpu.cycle(&mut self.mem_map);
+        }
+        if self.cpu.registers.pc == 0x100 && !self.stop {
+            println!("Boot ROM is done. We're now in cartridge territory.");
+            self.stop = true;
+        }
     }
 }
