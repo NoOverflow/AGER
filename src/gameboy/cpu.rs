@@ -250,7 +250,6 @@ impl Cpu {
             0xC9 => {
                 let address: u16 = self.pop_word(mem);
 
-                println!("Ret to {:#02x}", address);
                 self.registers.pc = address;
             }
             0xCB => {
@@ -261,10 +260,6 @@ impl Cpu {
             0xCD => {
                 let dw: u16 = self.fetch_u16(mem);
 
-                println!(
-                    "Call to {:#02x} expecting ret on {:#02x}",
-                    dw, self.registers.pc
-                );
                 self.push_word(mem, self.registers.pc);
                 self.registers.pc = dw;
             }
