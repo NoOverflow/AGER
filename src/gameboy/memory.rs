@@ -1,3 +1,5 @@
+use super::gpu::Lcdc;
+use super::gpu::Stat;
 use super::mbc::mbc0::MBC0;
 use super::mbc::MemoryBankController;
 use std::ops::Range;
@@ -26,8 +28,10 @@ pub struct Memory {
     //   Sound
     nr11: u8,
     //   Graphics
-    ly: u8,
-    scy: u8,
+    pub ly: u8,
+    pub scy: u8,
+    pub lcdc: Lcdc,
+    pub stat: Stat,
 }
 
 impl Memory {
@@ -78,6 +82,8 @@ impl Memory {
             nr11: 0,
             ly: 0x90, // TODO: This should be 0 on startup, this is set so that the boot sequence doesn't loop forever
             scy: 0,
+            lcdc: Lcdc::from(0x91),
+            stat: Stat::from(0x0),
         }
     }
 
@@ -93,7 +99,7 @@ impl Memory {
         }
     }
 
-    fn read_io_u8(&mut self, address: usize) -> u8 {
+    fn read_io_u8(&self, address: usize) -> u8 {
         match address {
             0xFF11 => self.nr11,
             0xFF42 => self.scy,
@@ -122,7 +128,7 @@ impl Memory {
         }
     }
 
-    pub fn read_u8(&mut self, address: usize) -> u8 {
+    pub fn read_u8(&self, address: usize) -> u8 {
         if self.rom_address_bound.contains(&address) {
             if self.boot_rom_enable != 0 && address <= 0xFF {
                 // During boot, any read from value 0x0 to 0xFF is redirected to the boot rom

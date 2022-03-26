@@ -1,12 +1,15 @@
 pub mod bin_utils;
 pub mod cpu;
+pub mod gpu;
 pub mod mbc;
 pub mod memory;
 pub mod registers;
 
 use cpu::Cpu;
+use gpu::Gpu;
 use mbc::mbc0::MBC0;
 use memory::Memory;
+use minifb::{Key, Window, WindowOptions};
 
 use std::fs::File;
 use std::io;
@@ -14,17 +17,20 @@ use std::io::prelude::*;
 
 pub struct Gameboy {
     cpu: Cpu,
+    gpu: Gpu,
     mem_map: Memory,
-
-    stop: bool,
+    pub stop: bool,
+    test_clock: usize,
 }
 
 impl Gameboy {
     pub fn new() -> Self {
         Gameboy {
             cpu: Cpu::new(),
+            gpu: Gpu::new(),
             mem_map: Memory::new(),
             stop: false,
+            test_clock: 0,
         }
     }
 
@@ -52,13 +58,21 @@ impl Gameboy {
         self.mem_map.write_io_u8(0x01, 0xFF50);
     }
 
-    pub fn cycle(&mut self) {
-        if !self.stop {
-            self.cpu.cycle(&mut self.mem_map);
-        }
-        if self.cpu.registers.pc == 0x100 && !self.stop {
-            println!("Boot ROM is done. We're now in cartridge territory.");
-            self.stop = true;
+    pub fn cycle(&mut self, buffer: &mut Vec<u32>, delta: u64) {
+        let fps_interval: f64 = 1 as f64 / 60 as f64; // Sleep time in ms
+        let gb_freq = 4.194304 * 1_000_000.0 as f64; // in Hz
+        let clk_per_frame = (gb_freq as f64) * fps_interval as f64;
+        let mut spent_cycles: usize = 0;
+
+        while !self.stop && ((spent_cycles as f64) < clk_per_frame) {
+            let cpu_cycles: usize = self.cpu.cycle(&mut self.mem_map);
+
+            self.gpu.cycle(&mut self.mem_map, buffer, cpu_cycles);
+            spent_cycles += cpu_cycles;
+            if self.cpu.registers.pc == 0x100 && !self.stop {
+                println!("Boot ROM is done. We're now in cartridge territory.");
+                self.stop = true;
+            }
         }
     }
 }

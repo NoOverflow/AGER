@@ -55,41 +55,49 @@ impl Cpu {
         return BinUtils::u16_from_u8s(high, low);
     }
 
-    fn call_extended(&mut self, mem: &mut Memory, op_code: u8) {
+    fn call_extended(&mut self, mem: &mut Memory, op_code: u8) -> u8 {
         match op_code {
             0x11 => {
                 Instructions::rl(&mut self.registers.c, &mut self.registers.f);
+                8
             }
             0x7C => {
                 Instructions::bit(7, self.registers.h, &mut self.registers.f);
+                8
             }
             _ => panic!("{:#02x} is not an implemented extended opcode.", op_code),
         }
     }
 
-    fn call(&mut self, mem: &mut Memory, op_code: u8) {
+    fn call(&mut self, mem: &mut Memory, op_code: u8) -> u8 {
         match op_code {
             0x4 => {
                 Instructions::inc(&mut self.registers.b, &mut self.registers.f);
+                4
             }
             0x5 => {
                 Instructions::dec(&mut self.registers.b, &mut self.registers.f);
+                4
             }
             0x6 => {
                 let v: u8 = self.fetch_u8(mem);
 
                 Instructions::ld_n(&mut self.registers.b, v);
+                8
             }
             0xC => {
                 Instructions::inc(&mut self.registers.c, &mut self.registers.f);
+                4
             }
             0xD => {
                 Instructions::dec(&mut self.registers.c, &mut self.registers.f);
+                4
             }
             0xE => {
                 let v: u8 = self.fetch_u8(mem);
 
                 Instructions::ld_n(&mut self.registers.c, v);
+                8
             }
             0x11 => {
                 let dw: u16 = self.fetch_u16(mem);
@@ -97,125 +105,158 @@ impl Cpu {
 
                 self.registers.d = u8s.0;
                 self.registers.e = u8s.1;
+                12
             }
             0x13 => {
                 Instructions::inc_nn(&mut self.registers.d, &mut self.registers.e);
+                8
             }
             0x15 => {
                 Instructions::dec(&mut self.registers.d, &mut self.registers.f);
+                4
             }
             0x16 => {
                 let v: u8 = self.fetch_u8(mem);
 
                 Instructions::ld_n(&mut self.registers.d, v);
+                8
             }
             0x17 => {
                 Instructions::rl(&mut self.registers.a, &mut self.registers.f);
+                4
             }
             0x18 => {
                 let offset: i8 = self.fetch_u8(mem) as i8;
 
                 Instructions::jr_n(offset, &mut self.registers.pc);
+                12
             }
             0x1A => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.d, self.registers.e);
                 let v: u8 = mem.read_u8(address as usize);
 
                 Instructions::ld_n(&mut self.registers.a, v);
+                8
             }
             0x1D => {
                 Instructions::dec(&mut self.registers.e, &mut self.registers.f);
+                4
             }
             0x1E => {
                 let v: u8 = self.fetch_u8(mem);
 
                 Instructions::ld_n(&mut self.registers.e, v);
+                8
             }
             0x20 => {
                 let offset: i8 = self.fetch_u8(mem) as i8;
 
                 if !self.registers.f.zero {
                     Instructions::jr_n(offset, &mut self.registers.pc);
+                    12
+                } else {
+                    8
                 }
             }
             0x21 => {
                 self.registers.l = self.fetch_u8(mem);
                 self.registers.h = self.fetch_u8(mem);
+                12
             }
             0x22 => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
 
                 mem.write_u8(self.registers.a, address as usize);
                 Instructions::inc_nn(&mut self.registers.h, &mut self.registers.l);
+                8
             }
             0x23 => {
                 Instructions::inc_nn(&mut self.registers.h, &mut self.registers.l);
+                8
             }
             0x24 => {
                 Instructions::inc(&mut self.registers.h, &mut self.registers.f);
+                4
             }
             0x28 => {
                 let offset: i8 = self.fetch_u8(mem) as i8;
 
                 if self.registers.f.zero {
                     Instructions::jr_n(offset, &mut self.registers.pc);
+                    12
+                } else {
+                    8
                 }
             }
             0x2E => {
                 let v: u8 = self.fetch_u8(mem);
 
                 Instructions::ld_n(&mut self.registers.l, v);
+                8
             }
             0x31 => {
                 let v: u16 = self.fetch_u16(mem);
 
                 Instructions::ld_nn(&mut self.registers.sp, v);
+                12
             }
             0x32 => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
 
                 mem.write_u8(self.registers.a, address as usize);
                 Instructions::dec_nn(&mut self.registers.h, &mut self.registers.l);
+                8
             }
             0x3D => {
                 Instructions::dec(&mut self.registers.a, &mut self.registers.f);
+                4
             }
             0x3E => {
                 let v: u8 = self.fetch_u8(mem);
 
                 Instructions::ld_n(&mut self.registers.a, v);
+                8
             }
             0x4F => {
                 Instructions::ld_n(&mut self.registers.c, self.registers.a);
+                4
             }
             0x57 => {
                 Instructions::ld_n(&mut self.registers.d, self.registers.a);
+                4
             }
             0x67 => {
                 Instructions::ld_n(&mut self.registers.h, self.registers.a);
+                4
             }
             0x77 => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
 
                 mem.write_u8(self.registers.a, address as usize);
+                8
             }
             0x78 => {
                 Instructions::ld_n(&mut self.registers.a, self.registers.b);
+                4
             }
             0x7B => {
                 Instructions::ld_n(&mut self.registers.a, self.registers.e);
+                4
             }
             0x7C => {
                 Instructions::ld_n(&mut self.registers.a, self.registers.h);
+                4
             }
             0x7D => {
                 Instructions::ld_n(&mut self.registers.a, self.registers.l);
+                4
             }
             0x86 => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
                 let v: u8 = mem.read_u8(address as usize);
 
                 Instructions::add(&mut self.registers.a, v, &mut self.registers.f);
+                8
             }
             0x90 => {
                 Instructions::sub(
@@ -223,17 +264,20 @@ impl Cpu {
                     self.registers.b,
                     &mut self.registers.f,
                 );
+                4
             }
             0xAF => {
                 let v: u8 = self.registers.a;
 
                 Instructions::xor(&mut self.registers.a, &mut self.registers.f, v);
+                4
             }
             0xBE => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
                 let v: u8 = mem.read_u8(address as usize);
 
                 Instructions::cp(self.registers.a, v, &mut self.registers.f);
+                8
             }
             0xC1 => {
                 let v: u16 = self.pop_word(mem);
@@ -241,52 +285,61 @@ impl Cpu {
 
                 self.registers.b = v8s.0;
                 self.registers.c = v8s.1;
+                12
             }
             0xC5 => {
                 let word: u16 = BinUtils::u16_from_u8s(self.registers.b, self.registers.c);
 
                 self.push_word(mem, word);
+                16
             }
             0xC9 => {
                 let address: u16 = self.pop_word(mem);
 
                 self.registers.pc = address;
+                16
             }
             0xCB => {
                 let extended_op_code: u8 = self.fetch_u8(mem);
 
-                self.call_extended(mem, extended_op_code);
+                return self.call_extended(mem, extended_op_code);
             }
             0xCD => {
                 let dw: u16 = self.fetch_u16(mem);
 
                 self.push_word(mem, self.registers.pc);
                 self.registers.pc = dw;
+                12
             }
             0xE0 => {
                 let dv: u8 = self.fetch_u8(mem);
                 let address: u16 = 0xFF00 | dv as u16;
 
                 mem.write_u8(self.registers.a, address as usize);
+                12
             }
             0xE2 => {
                 mem.write_u8(self.registers.c, 0xFF00 | (self.registers.c as usize));
+                8
             }
             0xEA => {
                 let address: u16 = self.fetch_u16(mem);
 
                 mem.write_u8(self.registers.a, address as usize);
+                16
             }
             0xF0 => {
                 let dv: u8 = self.fetch_u8(mem);
                 let address: u16 = 0xFF00 | dv as u16;
 
                 self.registers.a = mem.read_u8(address as usize);
+                12
             }
             0xFE => {
                 let v: u8 = self.fetch_u8(mem);
 
                 Instructions::cp(self.registers.a, v, &mut self.registers.f);
+                8
             }
             _ => panic!(
                 "{:#02x} is not an implemented opcode. (PC={:#02x})",
@@ -296,10 +349,10 @@ impl Cpu {
         }
     }
 
-    pub fn cycle(&mut self, mem: &mut Memory) {
+    pub fn cycle(&mut self, mem: &mut Memory) -> usize {
         let inst_op_code: u8 = self.fetch_u8(mem);
 
-        self.call(mem, inst_op_code);
+        return self.call(mem, inst_op_code) as usize;
     }
 }
 
