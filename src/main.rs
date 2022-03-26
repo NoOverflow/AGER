@@ -6,8 +6,8 @@ use minifb::{Key, Window, WindowOptions};
 use spin_sleep::LoopHelper;
 
 const SCALE: usize = 4;
-const WINDOW_WIDTH: usize = 256; // 160 * SCALE;
-const WINDOW_HEIGHT: usize = 256; // 144 * SCALE;
+const WINDOW_WIDTH: usize = 160; // 160 * SCALE;
+const WINDOW_HEIGHT: usize = 144; // 144 * SCALE;
 
 fn main() {
     let gb: &mut Gameboy = &mut Gameboy::new();
@@ -28,14 +28,17 @@ fn main() {
     let mut loop_helper = LoopHelper::builder()
         .report_interval_s(0.5) // report every half a second
         .build_with_target_rate(60.0); // limit to 250 FPS if possible
+    let mut win_buffer: Vec<u32> = vec![0; 160 * 144];
 
     while !gb.stop {
         let mut delta = loop_helper.loop_start();
 
-        gb.cycle(&mut buffer, delta.as_secs());
+        gb.cycle(delta.as_secs());
         if let Some(fps) = loop_helper.report_rate() {
             println!("Current FPS: {}", fps);
         }
+        buffer = gb.get_screen_buffer();
+        // win_buffer.copy_from_slice(&buffer[0..160 * 144]);
         window
             .update_with_buffer(&buffer, WINDOW_WIDTH, WINDOW_HEIGHT)
             .unwrap();

@@ -17,7 +17,7 @@ use std::io::prelude::*;
 
 pub struct Gameboy {
     cpu: Cpu,
-    gpu: Gpu,
+    pub gpu: Gpu,
     mem_map: Memory,
     pub stop: bool,
     test_clock: usize,
@@ -32,6 +32,10 @@ impl Gameboy {
             stop: false,
             test_clock: 0,
         }
+    }
+
+    pub fn get_screen_buffer(&self) -> Vec<u32> {
+        return self.gpu.get_screen_buffer(&self.mem_map);
     }
 
     pub fn load_cartridge(&mut self, path: &str) {
@@ -58,7 +62,7 @@ impl Gameboy {
         self.mem_map.write_io_u8(0x01, 0xFF50);
     }
 
-    pub fn cycle(&mut self, buffer: &mut Vec<u32>, delta: u64) {
+    pub fn cycle(&mut self, delta: u64) {
         let fps_interval: f64 = 1 as f64 / 60 as f64; // Sleep time in ms
         let gb_freq = 4.194304 * 1_000_000.0 as f64; // in Hz
         let clk_per_frame = (gb_freq as f64) * fps_interval as f64;
@@ -67,7 +71,7 @@ impl Gameboy {
         while !self.stop && ((spent_cycles as f64) < clk_per_frame) {
             let cpu_cycles: usize = self.cpu.cycle(&mut self.mem_map);
 
-            self.gpu.cycle(&mut self.mem_map, buffer, cpu_cycles);
+            self.gpu.cycle(&mut self.mem_map, cpu_cycles);
             spent_cycles += cpu_cycles;
             if self.cpu.registers.pc == 0x100 && !self.stop {
                 println!("Boot ROM is done. We're now in cartridge territory.");

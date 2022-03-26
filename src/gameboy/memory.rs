@@ -80,7 +80,7 @@ impl Memory {
             // Special registers
             boot_rom_enable: 0,
             nr11: 0,
-            ly: 0x90, // TODO: This should be 0 on startup, this is set so that the boot sequence doesn't loop forever
+            ly: 0x0, // TODO: This should be 0 on startup, this is set so that the boot sequence doesn't loop forever
             scy: 0,
             lcdc: Lcdc::from(0x91),
             stat: Stat::from(0x0),

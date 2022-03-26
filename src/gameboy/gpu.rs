@@ -58,7 +58,7 @@ const IBUFFER_SIZE: usize = 256;
 impl Gpu {
     pub fn new() -> Self {
         Gpu {
-            buffer: vec![0; IBUFFER_SIZE * IBUFFER_SIZE],
+            buffer: vec![0x0f380f; IBUFFER_SIZE * IBUFFER_SIZE],
             mode_clock: 0,
         }
     }
@@ -87,6 +87,24 @@ impl Gpu {
         return sprite_data;
     }
 
+    pub fn get_screen_buffer(&self, mem: &Memory) -> Vec<u32> {
+        let mut ret: Vec<u32> = vec![0x0; 160 * 144];
+
+        for y in 0..144 {
+            let mut buffer_y = y + mem.scy as isize;
+
+            if buffer_y > 255 {
+                buffer_y = buffer_y - 255;
+            } else if buffer_y < 0 {
+                buffer_y = 255 + buffer_y;
+            }
+            for x in 0..160 {
+                ret[y as usize * 160 + x] = self.buffer[buffer_y as usize * 256 + x];
+            }
+        }
+        return ret;
+    }
+
     fn gbcolor_to_rgb(&self, gb_color: u8) -> u32 {
         match gb_color {
             0x0 => 0x0f380f,
@@ -97,7 +115,7 @@ impl Gpu {
         }
     }
 
-    fn draw_background_line(&mut self, mem: &mut Memory, buffer: &mut Vec<u32>) {
+    fn draw_background_line(&mut self, mem: &mut Memory) {
         let bg_map_range = if mem.lcdc.bg_tmap_display_select {
             0x9C00..0xA000
         } else {
@@ -112,25 +130,28 @@ impl Gpu {
             let ly: usize = mem.ly as usize - (tile_y * 8);
 
             for lx in 0..8 {
-                let mut by = mem.scy as usize + tile_y * 8 + ly;
+                // -(mem.scy as isize) +
+                let mut by = tile_y as isize * 8 + ly as isize;
                 let bx = tile_x * 8 + lx;
 
                 if by > 255 {
                     by = by - 255;
+                } else if by < 0 {
+                    by = 255 + by;
                 }
-                buffer[by * 256 + bx] = self.gbcolor_to_rgb(tdata[ly][lx]);
+                self.buffer[by as usize * 256 + bx] = self.gbcolor_to_rgb(tdata[ly][lx]);
             }
         }
     }
 
-    fn draw_line(&mut self, mem: &mut Memory, buffer: &mut Vec<u32>) {
+    fn draw_line(&mut self, mem: &mut Memory) {
         if mem.lcdc.bg_win_display {
-            self.draw_background_line(mem, buffer);
+            self.draw_background_line(mem);
             if mem.lcdc.window_display {}
         }
     }
 
-    pub fn cycle(&mut self, mem: &mut Memory, buffer: &mut Vec<u32>, ticks: usize) -> bool {
+    pub fn cycle(&mut self, mem: &mut Memory, ticks: usize) -> bool {
         if !mem.lcdc.lcd_control_op {
             false;
         }
@@ -145,7 +166,7 @@ impl Gpu {
             if self.mode_clock <= 80 {
                 if mem.stat.mode_flag != 0b10 {
                     mem.stat.mode_flag = 0b10;
-                    self.draw_line(mem, buffer);
+                    self.draw_line(mem);
                     return true;
                 }
             } else if self.mode_clock <= 80 + 172 {
