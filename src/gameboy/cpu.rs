@@ -110,6 +110,12 @@ impl Cpu {
                 self.registers.c = u8s.1;
                 12
             }
+            0x2 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.b, self.registers.c);
+
+                mem.write_u8(self.registers.a, address as usize);
+                8
+            }
             0x4 => {
                 Instructions::inc(&mut self.registers.b, &mut self.registers.f);
                 4
@@ -149,6 +155,12 @@ impl Cpu {
                 self.registers.d = u8s.0;
                 self.registers.e = u8s.1;
                 12
+            }
+            0x12 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.d, self.registers.e);
+
+                mem.write_u8(self.registers.a, address as usize);
+                8
             }
             0x13 => {
                 Instructions::inc_nn(&mut self.registers.d, &mut self.registers.e);
@@ -300,6 +312,10 @@ impl Cpu {
                 Instructions::ld_n(&mut self.registers.a, v);
                 8
             }
+            0x47 => {
+                Instructions::ld_n(&mut self.registers.b, self.registers.a);
+                4
+            }
             0x4F => {
                 Instructions::ld_n(&mut self.registers.c, self.registers.a);
                 4
@@ -308,8 +324,16 @@ impl Cpu {
                 Instructions::ld_n(&mut self.registers.d, self.registers.a);
                 4
             }
+            0x5F => {
+                Instructions::ld_n(&mut self.registers.e, self.registers.a);
+                4
+            }
             0x67 => {
                 Instructions::ld_n(&mut self.registers.h, self.registers.a);
+                4
+            }
+            0x6F => {
+                Instructions::ld_n(&mut self.registers.l, self.registers.a);
                 4
             }
             0x77 => {
@@ -332,6 +356,12 @@ impl Cpu {
             }
             0x7D => {
                 Instructions::ld_n(&mut self.registers.a, self.registers.l);
+                4
+            }
+            0x7F => {
+                let v = self.registers.a;
+
+                Instructions::ld_n(&mut self.registers.a, v);
                 4
             }
             0x86 => {
