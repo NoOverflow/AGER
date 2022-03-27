@@ -814,6 +814,11 @@ impl Cpu {
                 self.push_word(mem, word);
                 16
             }
+            0xC7 => {
+                self.push_word(mem, self.registers.pc);
+                self.registers.pc = 0;
+                32
+            }
             0xC9 => {
                 let address: u16 = self.pop_word(mem);
 
@@ -832,6 +837,21 @@ impl Cpu {
                 self.registers.pc = dw;
                 12
             }
+            0xCF => {
+                self.push_word(mem, self.registers.pc);
+                self.registers.pc = 0x08;
+                32
+            }
+            0xD7 => {
+                self.push_word(mem, self.registers.pc);
+                self.registers.pc = 0x10;
+                32
+            }
+            0xDF => {
+                self.push_word(mem, self.registers.pc);
+                self.registers.pc = 0x18;
+                32
+            }
             0xE0 => {
                 let dv: u8 = self.fetch_u8(mem);
                 let address: u16 = 0xFF00 | dv as u16;
@@ -849,6 +869,11 @@ impl Cpu {
                 Instructions::and(&mut self.registers.a, &mut self.registers.f, v);
                 8
             }
+            0xE7 => {
+                self.push_word(mem, self.registers.pc);
+                self.registers.pc = 0x20;
+                32
+            }
             0xEA => {
                 let address: u16 = self.fetch_u16(mem);
 
@@ -860,6 +885,11 @@ impl Cpu {
 
                 Instructions::xor(&mut self.registers.a, &mut self.registers.f, v);
                 8
+            }
+            0xEF => {
+                self.push_word(mem, self.registers.pc);
+                self.registers.pc = 0x28;
+                32
             }
             0xF0 => {
                 let dv: u8 = self.fetch_u8(mem);
@@ -878,6 +908,11 @@ impl Cpu {
                 Instructions::or(&mut self.registers.a, &mut self.registers.f, v);
                 8
             }
+            0xF7 => {
+                self.push_word(mem, self.registers.pc);
+                self.registers.pc = 0x30;
+                32
+            }
             0xFB => {
                 self.ime = true;
                 4
@@ -887,6 +922,11 @@ impl Cpu {
 
                 Instructions::cp(self.registers.a, v, &mut self.registers.f);
                 8
+            }
+            0xFF => {
+                self.push_word(mem, self.registers.pc);
+                self.registers.pc = 0x38;
+                32
             }
             _ => panic!(
                 "{:#02x} is not an implemented opcode. (PC={:#02x})",
