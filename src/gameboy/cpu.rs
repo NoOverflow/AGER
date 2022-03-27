@@ -228,6 +228,12 @@ impl Cpu {
                 Instructions::ld_n(&mut self.registers.l, v);
                 8
             }
+            0x2F => {
+                self.registers.a = !self.registers.a;
+                self.registers.f.substract = true;
+                self.registers.f.half_carry = true;
+                4
+            }
             0x31 => {
                 self.registers.sp = self.fetch_u16(mem);
                 12
@@ -307,6 +313,55 @@ impl Cpu {
                     self.registers.b,
                     &mut self.registers.f,
                 );
+                4
+            }
+            0xA0 => {
+                let v: u8 = self.registers.b;
+
+                Instructions::and(&mut self.registers.a, &mut self.registers.f, v);
+                4
+            }
+            0xA1 => {
+                let v: u8 = self.registers.c;
+
+                Instructions::and(&mut self.registers.a, &mut self.registers.f, v);
+                4
+            }
+            0xA2 => {
+                let v: u8 = self.registers.d;
+
+                Instructions::and(&mut self.registers.a, &mut self.registers.f, v);
+                4
+            }
+            0xA3 => {
+                let v: u8 = self.registers.e;
+
+                Instructions::and(&mut self.registers.a, &mut self.registers.f, v);
+                4
+            }
+            0xA4 => {
+                let v: u8 = self.registers.h;
+
+                Instructions::and(&mut self.registers.a, &mut self.registers.f, v);
+                4
+            }
+            0xA5 => {
+                let v: u8 = self.registers.l;
+
+                Instructions::and(&mut self.registers.a, &mut self.registers.f, v);
+                4
+            }
+            0xA6 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::and(&mut self.registers.a, &mut self.registers.f, v);
+                8
+            }
+            0xA7 => {
+                let v: u8 = self.registers.a;
+
+                Instructions::and(&mut self.registers.a, &mut self.registers.f, v);
                 4
             }
             0xAF => {
@@ -420,6 +475,12 @@ impl Cpu {
                 mem.write_u8(self.registers.c, 0xFF00 | (self.registers.c as usize));
                 8
             }
+            0xE6 => {
+                let v: u8 = self.fetch_u8(mem);
+
+                Instructions::and(&mut self.registers.a, &mut self.registers.f, v);
+                8
+            }
             0xEA => {
                 let address: u16 = self.fetch_u16(mem);
 
@@ -442,6 +503,10 @@ impl Cpu {
 
                 Instructions::or(&mut self.registers.a, &mut self.registers.f, v);
                 8
+            }
+            0xFB => {
+                self.ime = true;
+                4
             }
             0xFE => {
                 let v: u8 = self.fetch_u8(mem);
@@ -479,6 +544,14 @@ impl Instructions {
         f_reg.zero = *a_reg == 0;
         f_reg.substract = false;
         f_reg.half_carry = false;
+        f_reg.carry = false;
+    }
+
+    pub fn and(a_reg: &mut u8, f_reg: &mut FRegister, v: u8) {
+        *a_reg &= v;
+        f_reg.zero = *a_reg == 0;
+        f_reg.substract = false;
+        f_reg.half_carry = true;
         f_reg.carry = false;
     }
 
