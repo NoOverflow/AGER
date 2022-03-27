@@ -9,7 +9,6 @@ use cpu::Cpu;
 use gpu::Gpu;
 use mbc::mbc0::MBC0;
 use memory::Memory;
-use minifb::{Key, Window, WindowOptions};
 
 use std::fs::File;
 use std::io;
@@ -20,7 +19,6 @@ pub struct Gameboy {
     pub gpu: Gpu,
     mem_map: Memory,
     pub stop: bool,
-    test_clock: usize,
 }
 
 impl Gameboy {
@@ -30,7 +28,6 @@ impl Gameboy {
             gpu: Gpu::new(),
             mem_map: Memory::new(),
             stop: false,
-            test_clock: 0,
         }
     }
 
@@ -63,7 +60,7 @@ impl Gameboy {
     }
 
     pub fn cycle(&mut self, delta: u64) {
-        let fps_interval: f64 = 1 as f64 / 60 as f64; // Sleep time in ms
+        let fps_interval: f64 = 1f64 / (60f64 + (delta as f64 / 100f64)) as f64; // Sleep time in s
         let gb_freq = 4.194304 * 1_000_000.0 as f64; // in Hz
         let clk_per_frame = (gb_freq as f64) * fps_interval as f64;
         let mut spent_cycles: usize = 0;

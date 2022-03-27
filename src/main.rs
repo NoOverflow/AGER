@@ -1,53 +1,44 @@
-extern crate minifb;
 mod gameboy;
+mod window;
 
 use gameboy::Gameboy;
-use minifb::{Key, Window, WindowOptions};
 use spin_sleep::LoopHelper;
+use std::sync::mpsc::channel;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
+use std::thread;
 
-const SCALE: usize = 4;
-const WINDOW_WIDTH: usize = 160; // 160 * SCALE;
-const WINDOW_HEIGHT: usize = 144; // 144 * SCALE;
-
-fn main() {
+fn clock_loop(tx: Sender<Vec<u32>>) {
     let gb: &mut Gameboy = &mut Gameboy::new();
-    let mut buffer: Vec<u32> = vec![0; WINDOW_WIDTH * WINDOW_HEIGHT];
-    let mut window = Window::new(
-        "AGER",
-        WINDOW_WIDTH,
-        WINDOW_HEIGHT,
-        WindowOptions::default(),
-    )
-    .unwrap_or_else(|e| {
-        panic!("{}", e);
-    });
+    let mut loop_helper = LoopHelper::builder()
+        .report_interval_s(0.5)
+        .build_with_target_rate(60.0);
+    let mut stop = false;
 
     gb.load_cartridge("res/test/licensed/tetris.gb");
     gb.power_up();
-
-    let mut loop_helper = LoopHelper::builder()
-        .report_interval_s(0.5) // report every half a second
-        .build_with_target_rate(60.0); // limit to 250 FPS if possible
-    let mut win_buffer: Vec<u32> = vec![0; 160 * 144];
-
-    while !gb.stop {
-        let mut delta = loop_helper.loop_start();
+    while !stop {
+        let delta = loop_helper.loop_start();
 
         gb.cycle(delta.as_secs());
         if let Some(fps) = loop_helper.report_rate() {
             println!("Current FPS: {}", fps);
         }
-        buffer = gb.get_screen_buffer();
-        // win_buffer.copy_from_slice(&buffer[0..160 * 144]);
-        window
-            .update_with_buffer(&buffer, WINDOW_WIDTH, WINDOW_HEIGHT)
-            .unwrap();
+        let buffer = gb.get_screen_buffer();
+
+        match tx.send(buffer) {
+            Ok(_) => (),
+            Err(_) => stop = true,
+        }
         loop_helper.loop_sleep();
     }
+}
 
-    while window.is_open() && !window.is_key_down(Key::Escape) {
-        window
-            .update_with_buffer(&buffer, WINDOW_WIDTH, WINDOW_HEIGHT)
-            .unwrap();
-    }
+fn main() {
+    let (tx, rx): (Sender<Vec<u32>>, Receiver<Vec<u32>>) = channel();
+
+    thread::spawn(move || {
+        clock_loop(tx);
+    });
+    window::init_window(rx);
 }

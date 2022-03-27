@@ -58,7 +58,7 @@ const IBUFFER_SIZE: usize = 256;
 impl Gpu {
     pub fn new() -> Self {
         Gpu {
-            buffer: vec![0x0f380f; IBUFFER_SIZE * IBUFFER_SIZE],
+            buffer: vec![0xFF1B0F0F; IBUFFER_SIZE * IBUFFER_SIZE],
             mode_clock: 0,
         }
     }
@@ -107,10 +107,11 @@ impl Gpu {
 
     fn gbcolor_to_rgb(&self, gb_color: u8) -> u32 {
         match gb_color {
-            0x0 => 0x0f380f,
-            0x1 => 0x306230,
-            0x2 => 0x8bac0f,
-            0x3 => 0x9bbc0f,
+            // ABGR
+            0x0 => 0xFF1B0F0F,
+            0x1 => 0xFF755A56,
+            0x2 => 0xFFBEB7C6,
+            0x3 => 0xFFF6FBFA,
             _ => panic!("Impossible color value"),
         }
     }
@@ -130,7 +131,6 @@ impl Gpu {
             let ly: usize = mem.ly as usize - (tile_y * 8);
 
             for lx in 0..8 {
-                // -(mem.scy as isize) +
                 let mut by = tile_y as isize * 8 + ly as isize;
                 let bx = tile_x * 8 + lx;
 
