@@ -312,29 +312,263 @@ impl Cpu {
                 Instructions::ld_n(&mut self.registers.a, v);
                 8
             }
+            0x40 => {
+                let v: u8 = self.registers.b;
+
+                Instructions::ld_n(&mut self.registers.b, v);
+                4
+            }
+            0x41 => {
+                Instructions::ld_n(&mut self.registers.b, self.registers.c);
+                4
+            }
+            0x42 => {
+                Instructions::ld_n(&mut self.registers.b, self.registers.d);
+                4
+            }
+            0x43 => {
+                Instructions::ld_n(&mut self.registers.b, self.registers.e);
+                4
+            }
+            0x44 => {
+                Instructions::ld_n(&mut self.registers.b, self.registers.h);
+                4
+            }
+            0x45 => {
+                Instructions::ld_n(&mut self.registers.b, self.registers.l);
+                4
+            }
+            0x46 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::ld_n(&mut self.registers.b, v);
+                8
+            }
             0x47 => {
                 Instructions::ld_n(&mut self.registers.b, self.registers.a);
                 4
+            }
+            0x48 => {
+                Instructions::ld_n(&mut self.registers.c, self.registers.b);
+                4
+            }
+            0x49 => {
+                let v: u8 = self.registers.c;
+
+                Instructions::ld_n(&mut self.registers.c, v);
+                4
+            }
+            0x4A => {
+                Instructions::ld_n(&mut self.registers.c, self.registers.d);
+                4
+            }
+            0x4B => {
+                Instructions::ld_n(&mut self.registers.c, self.registers.e);
+                4
+            }
+            0x4C => {
+                Instructions::ld_n(&mut self.registers.c, self.registers.h);
+                4
+            }
+            0x4D => {
+                Instructions::ld_n(&mut self.registers.c, self.registers.l);
+                4
+            }
+            0x4E => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::ld_n(&mut self.registers.c, v);
+                8
             }
             0x4F => {
                 Instructions::ld_n(&mut self.registers.c, self.registers.a);
                 4
             }
+            0x50 => {
+                Instructions::ld_n(&mut self.registers.d, self.registers.b);
+                4
+            }
+            0x51 => {
+                Instructions::ld_n(&mut self.registers.d, self.registers.c);
+                4
+            }
+            0x52 => {
+                let v: u8 = self.registers.d;
+
+                Instructions::ld_n(&mut self.registers.d, v);
+                4
+            }
+            0x53 => {
+                Instructions::ld_n(&mut self.registers.d, self.registers.e);
+                4
+            }
+            0x54 => {
+                Instructions::ld_n(&mut self.registers.d, self.registers.h);
+                4
+            }
+            0x55 => {
+                Instructions::ld_n(&mut self.registers.d, self.registers.l);
+                4
+            }
+            0x56 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::ld_n(&mut self.registers.d, v);
+                8
+            }
             0x57 => {
                 Instructions::ld_n(&mut self.registers.d, self.registers.a);
                 4
+            }
+            0x58 => {
+                Instructions::ld_n(&mut self.registers.e, self.registers.b);
+                4
+            }
+            0x59 => {
+                Instructions::ld_n(&mut self.registers.e, self.registers.c);
+                4
+            }
+            0x5A => {
+                Instructions::ld_n(&mut self.registers.e, self.registers.d);
+                4
+            }
+            0x5B => {
+                let v: u8 = self.registers.e;
+
+                Instructions::ld_n(&mut self.registers.e, v);
+                4
+            }
+            0x5C => {
+                Instructions::ld_n(&mut self.registers.e, self.registers.h);
+                4
+            }
+            0x5D => {
+                Instructions::ld_n(&mut self.registers.e, self.registers.l);
+                4
+            }
+            0x5E => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::ld_n(&mut self.registers.e, v);
+                8
             }
             0x5F => {
                 Instructions::ld_n(&mut self.registers.e, self.registers.a);
                 4
             }
+            0x60 => {
+                Instructions::ld_n(&mut self.registers.h, self.registers.b);
+                4
+            }
+            0x61 => {
+                Instructions::ld_n(&mut self.registers.h, self.registers.c);
+                4
+            }
+            0x62 => {
+                Instructions::ld_n(&mut self.registers.h, self.registers.d);
+                4
+            }
+            0x63 => {
+                Instructions::ld_n(&mut self.registers.h, self.registers.e);
+                4
+            }
+            0x64 => {
+                let v: u8 = self.registers.h;
+
+                Instructions::ld_n(&mut self.registers.h, v);
+                4
+            }
+            0x65 => {
+                Instructions::ld_n(&mut self.registers.h, self.registers.l);
+                4
+            }
+            0x66 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::ld_n(&mut self.registers.h, v);
+                8
+            }
             0x67 => {
                 Instructions::ld_n(&mut self.registers.h, self.registers.a);
                 4
             }
+            0x68 => {
+                Instructions::ld_n(&mut self.registers.l, self.registers.b);
+                4
+            }
+            0x69 => {
+                Instructions::ld_n(&mut self.registers.l, self.registers.c);
+                4
+            }
+            0x6A => {
+                Instructions::ld_n(&mut self.registers.l, self.registers.d);
+                4
+            }
+            0x6B => {
+                Instructions::ld_n(&mut self.registers.l, self.registers.e);
+                4
+            }
+            0x6C => {
+                Instructions::ld_n(&mut self.registers.l, self.registers.h);
+                4
+            }
+            0x6D => {
+                let v: u8 = self.registers.l;
+
+                Instructions::ld_n(&mut self.registers.l, v);
+                4
+            }
+            0x6E => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::ld_n(&mut self.registers.l, v);
+                8
+            }
             0x6F => {
                 Instructions::ld_n(&mut self.registers.l, self.registers.a);
                 4
+            }
+            0x70 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+
+                mem.write_u8(self.registers.b, address as usize);
+                8
+            }
+            0x71 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+
+                mem.write_u8(self.registers.c, address as usize);
+                8
+            }
+            0x72 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+
+                mem.write_u8(self.registers.d, address as usize);
+                8
+            }
+            0x73 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+
+                mem.write_u8(self.registers.e, address as usize);
+                8
+            }
+            0x74 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+
+                mem.write_u8(self.registers.h, address as usize);
+                8
+            }
+            0x75 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+
+                mem.write_u8(self.registers.l, address as usize);
+                8
             }
             0x77 => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
@@ -344,6 +578,14 @@ impl Cpu {
             }
             0x78 => {
                 Instructions::ld_n(&mut self.registers.a, self.registers.b);
+                4
+            }
+            0x79 => {
+                Instructions::ld_n(&mut self.registers.a, self.registers.c);
+                4
+            }
+            0x7A => {
+                Instructions::ld_n(&mut self.registers.a, self.registers.d);
                 4
             }
             0x7B => {
@@ -357,6 +599,13 @@ impl Cpu {
             0x7D => {
                 Instructions::ld_n(&mut self.registers.a, self.registers.l);
                 4
+            }
+            0x7E => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::ld_n(&mut self.registers.a, v);
+                8
             }
             0x7F => {
                 let v = self.registers.a;
