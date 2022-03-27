@@ -4,6 +4,26 @@ use super::mbc::mbc0::MBC0;
 use super::mbc::MemoryBankController;
 use std::ops::Range;
 
+pub struct Ei {
+    pub hi_lo: bool,
+    pub serial_tx_done: bool,
+    pub timer_overflow: bool,
+    pub lcdc: bool,
+    pub vblank: bool,
+}
+
+impl From<u8> for Ei {
+    fn from(item: u8) -> Self {
+        Ei {
+            hi_lo: item & (1 << 4) != 0,
+            serial_tx_done: item & (1 << 3) != 0,
+            timer_overflow: item & (1 << 2) != 0,
+            lcdc: item & (1 << 1) != 0,
+            vblank: item & (1 << 0) != 0,
+        }
+    }
+}
+
 pub struct Memory {
     // Memory bounds
     rom_address_bound: Range<usize>,
@@ -20,10 +40,13 @@ pub struct Memory {
     pub rom: Box<dyn MemoryBankController>,
     vram: [u8; 0x2000],
     iram: [u8; 0x128],
+    iram8: [u8; 0x2000],
 
     // TODO: Sort this, maybe export ?
     // Special Registers
     boot_rom_enable: u8,
+    pub ei: Ei,
+    pub iflag: Ei,
 
     //   Sound
     nr11: u8,
@@ -76,12 +99,15 @@ impl Memory {
             rom: Box::new(MBC0::new([].to_vec())), // By default we "load" a MBC0
             vram: [0; 0x2000],
             iram: [0; 0x128],
+            iram8: [0; 0x2000],
 
             // Special registers
             boot_rom_enable: 0,
             nr11: 0,
             ly: 0x0, // TODO: This should be 0 on startup, this is set so that the boot sequence doesn't loop forever
             scy: 0,
+            ei: Ei::from(0x0),
+            iflag: Ei::from(0x0),
             lcdc: Lcdc::from(0x91),
             stat: Stat::from(0x0),
         }
@@ -95,6 +121,7 @@ impl Memory {
 
             // This is a special register used by the boot rom
             0xFF50 => self.boot_rom_enable = value,
+            0xFFFF => self.ei = Ei::from(value),
             _ => {}
         }
     }
@@ -118,7 +145,10 @@ impl Memory {
             self.iram[address - self.iram_address_bound.start] = value;
         } else if self.vram_address_bound.contains(&address) {
             self.vram[address - self.vram_address_bound.start] = value;
-        } else if address == 0xFF50 || self.io_address_bound.contains(&address) {
+        } else if self.iram8_address_bound.contains(&address) {
+            self.iram8[address - self.iram8_address_bound.start] = value;
+        } else if address == 0xFF50 || address == 0xFFFF || self.io_address_bound.contains(&address)
+        {
             self.write_io_u8(value, address);
         } else {
             panic!(

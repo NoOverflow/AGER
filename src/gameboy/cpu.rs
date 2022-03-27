@@ -5,12 +5,14 @@ use super::registers::Registers;
 
 pub struct Cpu {
     pub registers: Registers,
+    pub ime: bool,
 }
 
 impl Cpu {
     pub fn new() -> Self {
         Cpu {
             registers: Registers::new(),
+            ime: true,
         }
     }
 
@@ -334,6 +336,10 @@ impl Cpu {
 
                 self.registers.a = mem.read_u8(address as usize);
                 12
+            }
+            0xF3 => {
+                self.ime = false;
+                4
             }
             0xFE => {
                 let v: u8 = self.fetch_u8(mem);

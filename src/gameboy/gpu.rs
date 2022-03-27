@@ -51,6 +51,7 @@ impl From<u8> for Stat {
 pub struct Gpu {
     buffer: Vec<u32>,
     pub mode_clock: usize,
+    pub vblank: bool,
 }
 
 const IBUFFER_SIZE: usize = 256;
@@ -60,6 +61,7 @@ impl Gpu {
         Gpu {
             buffer: vec![0xFF1B0F0F; IBUFFER_SIZE * IBUFFER_SIZE],
             mode_clock: 0,
+            vblank: false,
         }
     }
 
@@ -175,7 +177,11 @@ impl Gpu {
                 mem.stat.mode_flag = 0b00;
             }
         } else {
-            mem.stat.mode_flag = 0b01;
+            if mem.stat.mode_flag != 0b01 {
+                mem.stat.mode_flag = 0b01;
+                mem.iflag.vblank = true;
+            }
+            self.vblank = true
         }
         return false;
     }

@@ -59,6 +59,32 @@ impl Gameboy {
         self.mem_map.write_io_u8(0x01, 0xFF50);
     }
 
+    pub fn clear_interrupts(&mut self) {
+        self.mem_map.iflag = memory::Ei::from(0);
+    }
+
+    pub fn check_interrupts(&mut self) {
+        let mut int_address: u16 = 0;
+
+        if !self.cpu.ime {
+            self.clear_interrupts();
+            return;
+        }
+
+        if self.mem_map.iflag.vblank && self.mem_map.ei.vblank {
+            println!("VBlank Interrupt");
+            int_address = 0x40;
+        }
+
+        self.clear_interrupts();
+        if int_address == 0 {
+            return;
+        }
+        self.cpu.ime = false;
+        self.cpu.push_word(&mut self.mem_map, self.cpu.registers.pc);
+        self.cpu.registers.pc = int_address;
+    }
+
     pub fn cycle(&mut self, delta: u64) {
         let fps_interval: f64 = 1f64 / (60f64 + (delta as f64 / 100f64)) as f64; // Sleep time in s
         let gb_freq = 4.194304 * 1_000_000.0 as f64; // in Hz
@@ -66,13 +92,15 @@ impl Gameboy {
         let mut spent_cycles: usize = 0;
 
         while !self.stop && ((spent_cycles as f64) < clk_per_frame) {
+            self.check_interrupts();
+
             let cpu_cycles: usize = self.cpu.cycle(&mut self.mem_map);
 
             self.gpu.cycle(&mut self.mem_map, cpu_cycles);
             spent_cycles += cpu_cycles;
             if self.cpu.registers.pc == 0x100 && !self.stop {
                 println!("Boot ROM is done. We're now in cartridge territory.");
-                self.stop = true;
+                // self.stop = true;
             }
         }
     }

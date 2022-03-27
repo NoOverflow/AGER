@@ -1,11 +1,8 @@
 use glium::glutin::dpi::{LogicalSize, PhysicalSize};
-use glium::glutin::event::{Event, KeyboardInput, WindowEvent};
+use glium::glutin::event::{Event, WindowEvent};
 use glium::glutin::platform::windows::WindowBuilderExtWindows;
 use glium::Surface;
-use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
-use std::sync::mpsc::Sender;
-use std::thread;
 
 const SCALE: u32 = 4;
 const WINDOW_WIDTH: u32 = 160; // 160 * SCALE;
