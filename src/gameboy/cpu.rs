@@ -96,6 +96,10 @@ impl Cpu {
                 Instructions::ld_n(&mut self.registers.b, v);
                 8
             }
+            0xB => {
+                Instructions::dec_nn(&mut self.registers.b, &mut self.registers.c);
+                8
+            }
             0xC => {
                 Instructions::inc(&mut self.registers.c, &mut self.registers.f);
                 4
@@ -149,6 +153,10 @@ impl Cpu {
                 Instructions::ld_n(&mut self.registers.a, v);
                 8
             }
+            0x1B => {
+                Instructions::dec_nn(&mut self.registers.d, &mut self.registers.e);
+                8
+            }
             0x1D => {
                 Instructions::dec(&mut self.registers.e, &mut self.registers.f);
                 4
@@ -170,8 +178,11 @@ impl Cpu {
                 }
             }
             0x21 => {
-                self.registers.l = self.fetch_u8(mem);
-                self.registers.h = self.fetch_u8(mem);
+                let dw: u16 = self.fetch_u16(mem);
+                let u8s: (u8, u8) = BinUtils::u8s_from_u16(dw);
+
+                self.registers.h = u8s.0;
+                self.registers.l = u8s.1;
                 12
             }
             0x22 => {
@@ -207,6 +218,10 @@ impl Cpu {
                 Instructions::inc_nn(&mut self.registers.h, &mut self.registers.l);
                 8
             }
+            0x2B => {
+                Instructions::dec_nn(&mut self.registers.h, &mut self.registers.l);
+                8
+            }
             0x2E => {
                 let v: u8 = self.fetch_u8(mem);
 
@@ -230,6 +245,10 @@ impl Cpu {
 
                 mem.write_u8(v, address as usize);
                 12
+            }
+            0x3B => {
+                self.registers.sp = self.registers.sp.wrapping_sub(1);
+                8
             }
             0x3D => {
                 Instructions::dec(&mut self.registers.a, &mut self.registers.f);
@@ -294,6 +313,55 @@ impl Cpu {
                 let v: u8 = self.registers.a;
 
                 Instructions::xor(&mut self.registers.a, &mut self.registers.f, v);
+                4
+            }
+            0xB0 => {
+                let v: u8 = self.registers.b;
+
+                Instructions::or(&mut self.registers.a, &mut self.registers.f, v);
+                4
+            }
+            0xB1 => {
+                let v: u8 = self.registers.c;
+
+                Instructions::or(&mut self.registers.a, &mut self.registers.f, v);
+                4
+            }
+            0xB2 => {
+                let v: u8 = self.registers.d;
+
+                Instructions::or(&mut self.registers.a, &mut self.registers.f, v);
+                4
+            }
+            0xB3 => {
+                let v: u8 = self.registers.e;
+
+                Instructions::or(&mut self.registers.a, &mut self.registers.f, v);
+                4
+            }
+            0xB4 => {
+                let v: u8 = self.registers.h;
+
+                Instructions::or(&mut self.registers.a, &mut self.registers.f, v);
+                4
+            }
+            0xB5 => {
+                let v: u8 = self.registers.l;
+
+                Instructions::or(&mut self.registers.a, &mut self.registers.f, v);
+                4
+            }
+            0xB6 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::or(&mut self.registers.a, &mut self.registers.f, v);
+                8
+            }
+            0xB7 => {
+                let v: u8 = self.registers.a;
+
+                Instructions::or(&mut self.registers.a, &mut self.registers.f, v);
                 4
             }
             0xBE => {
@@ -369,6 +437,12 @@ impl Cpu {
                 self.ime = false;
                 4
             }
+            0xF6 => {
+                let v: u8 = self.fetch_u8(mem);
+
+                Instructions::or(&mut self.registers.a, &mut self.registers.f, v);
+                8
+            }
             0xFE => {
                 let v: u8 = self.fetch_u8(mem);
 
@@ -400,6 +474,14 @@ impl Instructions {
         *reg = v;
     }
 
+    pub fn or(a_reg: &mut u8, f_reg: &mut FRegister, v: u8) {
+        *a_reg |= v;
+        f_reg.zero = *a_reg == 0;
+        f_reg.substract = false;
+        f_reg.half_carry = false;
+        f_reg.carry = false;
+    }
+
     pub fn xor(a_reg: &mut u8, f_reg: &mut FRegister, v: u8) {
         *a_reg ^= v;
         f_reg.zero = *a_reg == 0;
@@ -417,7 +499,7 @@ impl Instructions {
 
     pub fn dec_nn(high_reg: &mut u8, low_reg: &mut u8) {
         let v: u16 = BinUtils::u16_from_u8s(*high_reg, *low_reg);
-        let vs: (u8, u8) = BinUtils::u8s_from_u16(v - 1);
+        let vs: (u8, u8) = BinUtils::u8s_from_u16(v.wrapping_sub(1));
 
         *high_reg = vs.0;
         *low_reg = vs.1;
