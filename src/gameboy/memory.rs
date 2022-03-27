@@ -24,6 +24,55 @@ impl From<u8> for Ei {
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct Joypad {
+    pub select_action: bool,
+    pub select_direction: bool,
+    pub p13_in: bool,
+    pub p12_in: bool,
+    pub p11_in: bool,
+    pub p10_in: bool,
+}
+
+impl From<Joypad> for u8 {
+    fn from(item: Joypad) -> Self {
+        let mut ret: u8 = 0;
+
+        if item.select_action {
+            ret |= 1 << 5;
+        }
+        if item.select_direction {
+            ret |= 1 << 4;
+        }
+        if item.p13_in {
+            ret |= 1 << 3;
+        }
+        if item.p12_in {
+            ret |= 1 << 2;
+        }
+        if item.p11_in {
+            ret |= 1 << 1;
+        }
+        if item.p10_in {
+            ret |= 1;
+        }
+        return ret;
+    }
+}
+
+impl From<u8> for Joypad {
+    fn from(item: u8) -> Self {
+        Joypad {
+            select_action: item & (1 << 5) != 0,
+            select_direction: item & (1 << 4) != 0,
+            p13_in: item & (1 << 3) != 0,
+            p12_in: item & (1 << 2) != 0,
+            p11_in: item & (1 << 1) != 0,
+            p10_in: item & (1 << 0) != 0,
+        }
+    }
+}
+
 pub struct Memory {
     // Memory bounds
     rom_address_bound: Range<usize>,
@@ -49,6 +98,7 @@ pub struct Memory {
     pub ei: Ei,
     pub iflag: Ei,
 
+    pub jpad: Joypad,
     //   Sound
     nr11: u8,
     //   Graphics
@@ -108,6 +158,7 @@ impl Memory {
             nr11: 0,
             ly: 0x0, // TODO: This should be 0 on startup, this is set so that the boot sequence doesn't loop forever
             scy: 0,
+            jpad: Joypad::from(0xFF),
             ei: Ei::from(0x0),
             iflag: Ei::from(0x0),
             lcdc: Lcdc::from(0x91),
@@ -130,6 +181,7 @@ impl Memory {
 
     fn read_io_u8(&self, address: usize) -> u8 {
         match address {
+            0xFF00 => u8::from(self.jpad),
             0xFF11 => self.nr11,
             0xFF42 => self.scy,
             0xFF44 => self.ly,
