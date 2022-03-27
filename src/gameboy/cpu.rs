@@ -428,6 +428,61 @@ impl Cpu {
                 Instructions::and(&mut self.registers.a, &mut self.registers.f, v);
                 4
             }
+            0xA8 => {
+                Instructions::xor(
+                    &mut self.registers.a,
+                    &mut self.registers.f,
+                    self.registers.b,
+                );
+                4
+            }
+            0xA9 => {
+                Instructions::xor(
+                    &mut self.registers.a,
+                    &mut self.registers.f,
+                    self.registers.c,
+                );
+                4
+            }
+            0xAA => {
+                Instructions::xor(
+                    &mut self.registers.a,
+                    &mut self.registers.f,
+                    self.registers.d,
+                );
+                4
+            }
+            0xAB => {
+                Instructions::xor(
+                    &mut self.registers.a,
+                    &mut self.registers.f,
+                    self.registers.e,
+                );
+                4
+            }
+            0xAC => {
+                Instructions::xor(
+                    &mut self.registers.a,
+                    &mut self.registers.f,
+                    self.registers.h,
+                );
+                4
+            }
+            0xAD => {
+                Instructions::xor(
+                    &mut self.registers.a,
+                    &mut self.registers.f,
+                    self.registers.l,
+                );
+                4
+            }
+            0xAE => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::xor(&mut self.registers.a, &mut self.registers.f, v);
+                8
+            }
             0xAF => {
                 let v: u8 = self.registers.a;
 
@@ -550,6 +605,12 @@ impl Cpu {
 
                 mem.write_u8(self.registers.a, address as usize);
                 16
+            }
+            0xEE => {
+                let v: u8 = self.fetch_u8(mem);
+
+                Instructions::xor(&mut self.registers.a, &mut self.registers.f, v);
+                8
             }
             0xF0 => {
                 let dv: u8 = self.fetch_u8(mem);
