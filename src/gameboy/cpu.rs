@@ -73,6 +73,15 @@ impl Cpu {
 
     fn call(&mut self, mem: &mut Memory, op_code: u8) -> u8 {
         match op_code {
+            0x0 => 4,
+            0x1 => {
+                let dw: u16 = self.fetch_u16(mem);
+                let u8s: (u8, u8) = BinUtils::u8s_from_u16(dw);
+
+                self.registers.b = u8s.0;
+                self.registers.c = u8s.1;
+                12
+            }
             0x4 => {
                 Instructions::inc(&mut self.registers.b, &mut self.registers.f);
                 4
@@ -190,6 +199,14 @@ impl Cpu {
                     8
                 }
             }
+            0x2A => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                self.registers.a = v;
+                Instructions::inc_nn(&mut self.registers.h, &mut self.registers.l);
+                8
+            }
             0x2E => {
                 let v: u8 = self.fetch_u8(mem);
 
@@ -197,9 +214,7 @@ impl Cpu {
                 8
             }
             0x31 => {
-                let v: u16 = self.fetch_u16(mem);
-
-                Instructions::ld_nn(&mut self.registers.sp, v);
+                self.registers.sp = self.fetch_u16(mem);
                 12
             }
             0x32 => {
@@ -208,6 +223,13 @@ impl Cpu {
                 mem.write_u8(self.registers.a, address as usize);
                 Instructions::dec_nn(&mut self.registers.h, &mut self.registers.l);
                 8
+            }
+            0x36 => {
+                let v: u8 = self.fetch_u8(mem);
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+
+                mem.write_u8(v, address as usize);
+                12
             }
             0x3D => {
                 Instructions::dec(&mut self.registers.a, &mut self.registers.f);
@@ -287,6 +309,12 @@ impl Cpu {
 
                 self.registers.b = v8s.0;
                 self.registers.c = v8s.1;
+                12
+            }
+            0xC3 => {
+                let address: u16 = self.fetch_u16(mem);
+
+                self.registers.pc = address;
                 12
             }
             0xC5 => {
