@@ -63,6 +63,34 @@ impl Cpu {
                 Instructions::rl(&mut self.registers.c, &mut self.registers.f);
                 8
             }
+            0x30 => {
+                Instructions::swap(&mut self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x31 => {
+                Instructions::swap(&mut self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x32 => {
+                Instructions::swap(&mut self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x33 => {
+                Instructions::swap(&mut self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x34 => {
+                Instructions::swap(&mut self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x35 => {
+                Instructions::swap(&mut self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x37 => {
+                Instructions::swap(&mut self.registers.a, &mut self.registers.f);
+                8
+            }
             0x7C => {
                 Instructions::bit(7, self.registers.h, &mut self.registers.f);
                 8
@@ -251,6 +279,12 @@ impl Cpu {
 
                 mem.write_u8(v, address as usize);
                 12
+            }
+            0x37 => {
+                self.registers.f.substract = false;
+                self.registers.f.half_carry = false;
+                self.registers.f.carry = true;
+                4
             }
             0x3B => {
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
@@ -601,6 +635,14 @@ impl Instructions {
 
         *high_reg = vs.0;
         *low_reg = vs.1;
+    }
+
+    pub fn swap(n: &mut u8, f_reg: &mut FRegister) {
+        *n = ((*n & 0xF0u8) >> 4) | ((*n & 0x0F) << 4);
+        f_reg.zero = *n == 0;
+        f_reg.substract = false;
+        f_reg.half_carry = false;
+        f_reg.carry = false;
     }
 
     pub fn rlc(reg: &mut u8, f_reg: &mut FRegister) {
