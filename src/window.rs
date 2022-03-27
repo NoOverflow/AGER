@@ -81,7 +81,7 @@ pub fn init_window(rx: Receiver<Vec<u32>>) {
     .unwrap();
 
     set_window_size(display.gl_window().window());
-    event_loop.run(move |ev, i, cflow| {
+    event_loop.run(move |ev, _, cflow| {
         let mut stop_win = false;
 
         match ev {

@@ -65,7 +65,7 @@ impl Gpu {
         }
     }
 
-    fn get_sprite_data(&self, mut mem: &Memory, index: usize) -> [[u8; 8]; 8] {
+    fn get_sprite_data(&self, mem: &Memory, index: usize) -> [[u8; 8]; 8] {
         let tdata_address_range = if mem.lcdc.bg_win_tile_data_select {
             0x8000..0x9000
         } else {

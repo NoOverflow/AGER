@@ -11,7 +11,6 @@ use mbc::mbc0::MBC0;
 use memory::Memory;
 
 use std::fs::File;
-use std::io;
 use std::io::prelude::*;
 
 pub struct Gameboy {
