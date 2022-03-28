@@ -1,5 +1,6 @@
 use super::memory::Memory;
 
+#[derive(Copy, Clone)]
 pub struct Lcdc {
     pub lcd_control_op: bool,
     pub window_tmap_displ_select: bool,
@@ -26,6 +27,39 @@ impl From<u8> for Lcdc {
     }
 }
 
+impl From<Lcdc> for u8 {
+    fn from(item: Lcdc) -> Self {
+        let mut ret: u8 = 0;
+
+        if item.lcd_control_op {
+            ret |= 1 << 7;
+        }
+        if item.window_tmap_displ_select {
+            ret |= 1 << 6;
+        }
+        if item.window_display {
+            ret |= 1 << 5;
+        }
+        if item.bg_win_tile_data_select {
+            ret |= 1 << 4;
+        }
+        if item.bg_tmap_display_select {
+            ret |= 1 << 3;
+        }
+        if item.sprite_size {
+            ret |= 1 << 2;
+        }
+        if item.sprite_display {
+            ret |= 1 << 1;
+        }
+        if item.bg_win_display {
+            ret |= 1;
+        }
+        return ret;
+    }
+}
+
+#[derive(Copy, Clone)]
 pub struct Stat {
     pub coincidence_select: bool,
     pub select_mode_10: bool,
@@ -45,6 +79,30 @@ impl From<u8> for Stat {
             coincidence_flag: item & (1 << 2) != 0,
             mode_flag: item & 0x3,
         }
+    }
+}
+
+impl From<Stat> for u8 {
+    fn from(item: Stat) -> Self {
+        let mut ret: u8 = 0;
+
+        if item.coincidence_select {
+            ret |= 1 << 6;
+        }
+        if item.select_mode_10 {
+            ret |= 1 << 5;
+        }
+        if item.select_mode_01 {
+            ret |= 1 << 4;
+        }
+        if item.select_mode_00 {
+            ret |= 1 << 3;
+        }
+        if item.coincidence_flag {
+            ret |= 1 << 2;
+        }
+        ret |= item.mode_flag;
+        return ret;
     }
 }
 
