@@ -577,6 +577,10 @@ impl Cpu {
                 Instructions::inc(&mut self.registers.h, &mut self.registers.f);
                 4
             }
+            0x25 => {
+                Instructions::dec(&mut self.registers.h, &mut self.registers.f);
+                4
+            }
             0x28 => {
                 let offset: i8 = self.fetch_u8(mem) as i8;
 
@@ -612,6 +616,10 @@ impl Cpu {
             }
             0x2C => {
                 Instructions::inc(&mut self.registers.l, &mut self.registers.f);
+                4
+            }
+            0x2D => {
+                Instructions::dec(&mut self.registers.l, &mut self.registers.f);
                 4
             }
             0x2E => {
@@ -656,6 +664,14 @@ impl Cpu {
                 let mut v: u8 = mem.read_u8(address as usize);
 
                 Instructions::inc(&mut v, &mut self.registers.f);
+                mem.write_u8(v, address as usize);
+                12
+            }
+            0x35 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::dec(&mut v, &mut self.registers.f);
                 mem.write_u8(v, address as usize);
                 12
             }
