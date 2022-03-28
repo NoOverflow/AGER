@@ -1406,6 +1406,16 @@ impl Cpu {
                 self.registers.pc = address;
                 12
             }
+            0xC4 => {
+                let dw: u16 = self.fetch_u16(mem);
+
+                if !self.registers.f.zero {
+                    self.push_word(mem, self.registers.pc);
+                    self.registers.pc = dw;
+                    return 24;
+                }
+                12
+            }
             0xC5 => {
                 let word: u16 = BinUtils::u16_from_u8s(self.registers.b, self.registers.c);
 
@@ -1443,6 +1453,16 @@ impl Cpu {
 
                 return self.call_extended(mem, extended_op_code);
             }
+            0xCC => {
+                let dw: u16 = self.fetch_u16(mem);
+
+                if self.registers.f.zero {
+                    self.push_word(mem, self.registers.pc);
+                    self.registers.pc = dw;
+                    return 24;
+                }
+                12
+            }
             0xCD => {
                 let dw: u16 = self.fetch_u16(mem);
 
@@ -1478,6 +1498,16 @@ impl Cpu {
                 self.registers.e = u8s.1;
                 12
             }
+            0xD4 => {
+                let dw: u16 = self.fetch_u16(mem);
+
+                if !self.registers.f.carry {
+                    self.push_word(mem, self.registers.pc);
+                    self.registers.pc = dw;
+                    return 24;
+                }
+                12
+            }
             0xD5 => {
                 let v: u16 = BinUtils::u16_from_u8s(self.registers.d, self.registers.e);
 
@@ -1503,6 +1533,16 @@ impl Cpu {
                     return 20;
                 }
                 8
+            }
+            0xDC => {
+                let dw: u16 = self.fetch_u16(mem);
+
+                if self.registers.f.carry {
+                    self.push_word(mem, self.registers.pc);
+                    self.registers.pc = dw;
+                    return 24;
+                }
+                12
             }
             0xDF => {
                 self.push_word(mem, self.registers.pc);
