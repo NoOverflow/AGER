@@ -429,6 +429,13 @@ impl Cpu {
                 );
                 8
             }
+            0xA => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.b, self.registers.c);
+                let v: u8 = mem.read_u8(address as usize);
+
+                self.registers.a = v;
+                8
+            }
             0xB => {
                 Instructions::dec_nn(&mut self.registers.b, &mut self.registers.c);
                 8
@@ -1266,6 +1273,15 @@ impl Cpu {
                 self.registers.pc = 0;
                 32
             }
+            0xC8 => {
+                if self.registers.f.zero {
+                    let address: u16 = self.pop_word(mem);
+
+                    self.registers.pc = address;
+                    return 20;
+                }
+                8
+            }
             0xC9 => {
                 let address: u16 = self.pop_word(mem);
 
@@ -1289,6 +1305,15 @@ impl Cpu {
                 self.registers.pc = 0x08;
                 32
             }
+            0xD0 => {
+                if !self.registers.f.carry {
+                    let address: u16 = self.pop_word(mem);
+
+                    self.registers.pc = address;
+                    return 20;
+                }
+                8
+            }
             0xD1 => {
                 let w: u16 = self.pop_word(mem);
                 let u8s = BinUtils::u8s_from_u16(w);
@@ -1307,6 +1332,15 @@ impl Cpu {
                 self.push_word(mem, self.registers.pc);
                 self.registers.pc = 0x10;
                 32
+            }
+            0xD8 => {
+                if self.registers.f.carry {
+                    let address: u16 = self.pop_word(mem);
+
+                    self.registers.pc = address;
+                    return 20;
+                }
+                8
             }
             0xDF => {
                 self.push_word(mem, self.registers.pc);
@@ -1399,6 +1433,13 @@ impl Cpu {
                 self.push_word(mem, self.registers.pc);
                 self.registers.pc = 0x30;
                 32
+            }
+            0xFA => {
+                let address: u16 = self.fetch_u16(mem);
+                let v: u8 = mem.read_u8(address as usize);
+
+                self.registers.a = v;
+                16
             }
             0xFB => {
                 self.ime = true;
