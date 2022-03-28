@@ -1059,6 +1059,67 @@ impl Cpu {
                 Instructions::add(&mut self.registers.a, v, &mut self.registers.f);
                 4
             }
+            0x88 => {
+                Instructions::adc(
+                    &mut self.registers.a,
+                    self.registers.b,
+                    &mut self.registers.f,
+                );
+                4
+            }
+            0x89 => {
+                Instructions::adc(
+                    &mut self.registers.a,
+                    self.registers.c,
+                    &mut self.registers.f,
+                );
+                4
+            }
+            0x8A => {
+                Instructions::adc(
+                    &mut self.registers.a,
+                    self.registers.d,
+                    &mut self.registers.f,
+                );
+                4
+            }
+            0x8B => {
+                Instructions::adc(
+                    &mut self.registers.a,
+                    self.registers.e,
+                    &mut self.registers.f,
+                );
+                4
+            }
+            0x8C => {
+                Instructions::adc(
+                    &mut self.registers.a,
+                    self.registers.h,
+                    &mut self.registers.f,
+                );
+                4
+            }
+            0x8D => {
+                Instructions::adc(
+                    &mut self.registers.a,
+                    self.registers.l,
+                    &mut self.registers.f,
+                );
+                4
+            }
+            0x8E => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::adc(&mut self.registers.a, v, &mut self.registers.f);
+                8
+            }
+            0x8F => {
+                let v: u8 = self.registers.a;
+
+                Instructions::adc(&mut self.registers.a, v, &mut self.registers.f);
+                4
+            }
             0x90 => {
                 Instructions::sub(
                     &mut self.registers.a,
