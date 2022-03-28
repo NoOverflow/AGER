@@ -55,7 +55,6 @@ impl Gameboy {
     pub fn power_up(&mut self) {
         self.cpu.registers.pc = 0x0;
         self.cpu.registers.sp = 0xFFFE;
-        self.mem_map.write_io_u8(0x01, 0xFF50);
     }
 
     pub fn clear_interrupts(&mut self) {
@@ -97,10 +96,6 @@ impl Gameboy {
 
             self.gpu.cycle(&mut self.mem_map, cpu_cycles);
             spent_cycles += cpu_cycles;
-            if self.cpu.registers.pc == 0x100 && !self.stop {
-                println!("Boot ROM is done. We're now in cartridge territory.");
-                // self.stop = true;
-            }
         }
     }
 }

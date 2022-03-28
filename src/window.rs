@@ -68,7 +68,7 @@ fn draw_buffer(
 pub fn init_window(rx: Receiver<Vec<u32>>) {
     let window_builder = create_window_builder();
     let context_builder = glium::glutin::ContextBuilder::new();
-    let mut event_loop = glium::glutin::event_loop::EventLoop::new();
+    let event_loop = glium::glutin::event_loop::EventLoop::new();
     let display =
         glium::backend::glutin::Display::new(window_builder, context_builder, &event_loop).unwrap();
     let mut texture = glium::texture::texture2d::Texture2d::empty_with_format(
