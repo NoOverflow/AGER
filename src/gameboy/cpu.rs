@@ -842,6 +842,14 @@ impl Cpu {
                 self.registers.pc = 0x08;
                 32
             }
+            0xD1 => {
+                let w: u16 = self.pop_word(mem);
+                let u8s = BinUtils::u8s_from_u16(w);
+
+                self.registers.d = u8s.0;
+                self.registers.e = u8s.1;
+                12
+            }
             0xD7 => {
                 self.push_word(mem, self.registers.pc);
                 self.registers.pc = 0x10;
@@ -857,6 +865,14 @@ impl Cpu {
                 let address: u16 = 0xFF00 | dv as u16;
 
                 mem.write_u8(self.registers.a, address as usize);
+                12
+            }
+            0xE1 => {
+                let w: u16 = self.pop_word(mem);
+                let u8s = BinUtils::u8s_from_u16(w);
+
+                self.registers.h = u8s.0;
+                self.registers.l = u8s.1;
                 12
             }
             0xE2 => {
