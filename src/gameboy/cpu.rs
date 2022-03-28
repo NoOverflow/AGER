@@ -19,7 +19,7 @@ impl Cpu {
     pub fn fetch_u8(&mut self, mem: &mut Memory) -> u8 {
         let v: u8 = mem.read_u8(self.registers.pc as usize);
 
-        self.registers.pc += 1;
+        self.registers.pc = self.registers.pc.wrapping_add(1);
         v
     }
 
@@ -46,7 +46,7 @@ impl Cpu {
     pub fn pop(&mut self, mem: &mut Memory) -> u8 {
         let v: u8 = mem.read_u8(self.registers.sp as usize);
 
-        self.registers.sp += 1;
+        self.registers.sp = self.registers.sp.wrapping_add(1);
         v
     }
 
@@ -472,6 +472,10 @@ impl Cpu {
                 Instructions::inc_nn(&mut self.registers.d, &mut self.registers.e);
                 8
             }
+            0x14 => {
+                Instructions::inc(&mut self.registers.d, &mut self.registers.f);
+                4
+            }
             0x15 => {
                 Instructions::dec(&mut self.registers.d, &mut self.registers.f);
                 4
@@ -513,6 +517,10 @@ impl Cpu {
             0x1B => {
                 Instructions::dec_nn(&mut self.registers.d, &mut self.registers.e);
                 8
+            }
+            0x1C => {
+                Instructions::inc(&mut self.registers.e, &mut self.registers.f);
+                4
             }
             0x1D => {
                 Instructions::dec(&mut self.registers.e, &mut self.registers.f);
@@ -590,6 +598,10 @@ impl Cpu {
                 Instructions::dec_nn(&mut self.registers.h, &mut self.registers.l);
                 8
             }
+            0x2C => {
+                Instructions::inc(&mut self.registers.l, &mut self.registers.f);
+                4
+            }
             0x2E => {
                 let v: u8 = self.fetch_u8(mem);
 
@@ -622,6 +634,14 @@ impl Cpu {
                 mem.write_u8(self.registers.a, address as usize);
                 Instructions::dec_nn(&mut self.registers.h, &mut self.registers.l);
                 8
+            }
+            0x34 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::inc(&mut v, &mut self.registers.f);
+                mem.write_u8(v, address as usize);
+                12
             }
             0x36 => {
                 let v: u8 = self.fetch_u8(mem);
