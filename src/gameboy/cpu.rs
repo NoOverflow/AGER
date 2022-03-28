@@ -63,6 +63,42 @@ impl Cpu {
                 Instructions::rl(&mut self.registers.c, &mut self.registers.f);
                 8
             }
+            0x18 => {
+                Instructions::rr(&mut self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x19 => {
+                Instructions::rr(&mut self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x1A => {
+                Instructions::rr(&mut self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x1B => {
+                Instructions::rr(&mut self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x1C => {
+                Instructions::rr(&mut self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x1D => {
+                Instructions::rr(&mut self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x1E => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::rr(&mut v, &mut self.registers.f);
+                mem.write_u8(v, address as usize);
+                16
+            }
+            0x1F => {
+                Instructions::rr(&mut self.registers.a, &mut self.registers.f);
+                8
+            }
             0x30 => {
                 Instructions::swap(&mut self.registers.b, &mut self.registers.f);
                 8
@@ -1779,6 +1815,15 @@ impl Instructions {
         f_reg.carry = false;
     }
 
+    pub fn rr(reg: &mut u8, f_reg: &mut FRegister) {
+        let carry: bool = *reg & 0x1 == 0x1;
+
+        *reg = (*reg >> 1) | (if f_reg.carry { 0x80 } else { 0 });
+        f_reg.zero = *reg == 0;
+        f_reg.substract = false;
+        f_reg.half_carry = false;
+        f_reg.carry = carry;
+    }
     pub fn rlc(reg: &mut u8, f_reg: &mut FRegister) {
         let carry: bool = *reg & 0x80 == 0x80;
 
