@@ -1059,6 +1059,59 @@ impl Cpu {
                 );
                 4
             }
+            0x91 => {
+                Instructions::sub(
+                    &mut self.registers.a,
+                    self.registers.c,
+                    &mut self.registers.f,
+                );
+                4
+            }
+            0x92 => {
+                Instructions::sub(
+                    &mut self.registers.a,
+                    self.registers.d,
+                    &mut self.registers.f,
+                );
+                4
+            }
+            0x93 => {
+                Instructions::sub(
+                    &mut self.registers.a,
+                    self.registers.e,
+                    &mut self.registers.f,
+                );
+                4
+            }
+            0x94 => {
+                Instructions::sub(
+                    &mut self.registers.a,
+                    self.registers.h,
+                    &mut self.registers.f,
+                );
+                4
+            }
+            0x95 => {
+                Instructions::sub(
+                    &mut self.registers.a,
+                    self.registers.l,
+                    &mut self.registers.f,
+                );
+                4
+            }
+            0x96 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::sub(&mut self.registers.a, v, &mut self.registers.f);
+                8
+            }
+            0x97 => {
+                let v: u8 = self.registers.a;
+
+                Instructions::sub(&mut self.registers.a, v, &mut self.registers.f);
+                4
+            }
             0xA0 => {
                 let v: u8 = self.registers.b;
 
@@ -1347,6 +1400,12 @@ impl Cpu {
 
                 self.push_word(mem, v);
                 16
+            }
+            0xD6 => {
+                let v: u8 = self.fetch_u8(mem);
+
+                Instructions::sub(&mut self.registers.a, v, &mut self.registers.f);
+                8
             }
             0xD7 => {
                 self.push_word(mem, self.registers.pc);
