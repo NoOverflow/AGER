@@ -1,3 +1,4 @@
+#[derive(Copy, Clone)]
 pub struct FRegister {
     pub zero: bool,
     pub substract: bool,
@@ -13,6 +14,37 @@ impl FRegister {
             half_carry: false,
             carry: false,
         }
+    }
+}
+
+impl From<u8> for FRegister {
+    fn from(item: u8) -> Self {
+        FRegister {
+            zero: item & (1 << 7) != 0,
+            substract: item & (1 << 6) != 0,
+            half_carry: item & (1 << 5) != 0,
+            carry: item & (1 << 4) != 0,
+        }
+    }
+}
+
+impl From<FRegister> for u8 {
+    fn from(item: FRegister) -> Self {
+        let mut ret: u8 = 0;
+
+        if item.zero {
+            ret |= 1 << 7;
+        }
+        if item.substract {
+            ret |= 1 << 6;
+        }
+        if item.half_carry {
+            ret |= 1 << 5;
+        }
+        if item.carry {
+            ret |= 1 << 4;
+        }
+        return ret;
     }
 }
 

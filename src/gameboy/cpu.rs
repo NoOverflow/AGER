@@ -494,6 +494,12 @@ impl Cpu {
                 Instructions::ld_n(&mut self.registers.b, v);
                 8
             }
+            0x8 => {
+                let address: u16 = self.fetch_u16(mem);
+
+                self.registers.sp = address;
+                20
+            }
             0x9 => {
                 let v: u16 = BinUtils::u16_from_u8s(self.registers.b, self.registers.c);
 
@@ -653,6 +659,12 @@ impl Cpu {
                 Instructions::dec(&mut self.registers.h, &mut self.registers.f);
                 4
             }
+            0x26 => {
+                let v: u8 = self.fetch_u8(mem);
+
+                Instructions::ld_n(&mut self.registers.h, v);
+                8
+            }
             0x28 => {
                 let offset: i8 = self.fetch_u8(mem) as i8;
 
@@ -782,6 +794,10 @@ impl Cpu {
             0x3B => {
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
                 8
+            }
+            0x3C => {
+                Instructions::inc(&mut self.registers.a, &mut self.registers.f);
+                4
             }
             0x3D => {
                 Instructions::dec(&mut self.registers.a, &mut self.registers.f);
@@ -1732,6 +1748,12 @@ impl Cpu {
                 self.registers.pc = 0x30;
                 32
             }
+            0xF9 => {
+                let hl: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+
+                self.registers.sp = hl;
+                8
+            }
             0xFA => {
                 let address: u16 = self.fetch_u16(mem);
                 let v: u8 = mem.read_u8(address as usize);
@@ -1860,6 +1882,17 @@ impl Instructions {
         f_reg.half_carry = false;
         f_reg.carry = carry;
     }
+
+    pub fn rrc(reg: &mut u8, f_reg: &mut FRegister) {
+        let carry: bool = *reg & 0x1 == 0x1;
+
+        *reg = (*reg >> 1) | (if carry { 0x80 } else { 0 });
+        f_reg.zero = *reg == 0;
+        f_reg.substract = false;
+        f_reg.half_carry = false;
+        f_reg.carry = carry;
+    }
+
     pub fn rlc(reg: &mut u8, f_reg: &mut FRegister) {
         let carry: bool = *reg & 0x80 == 0x80;
 
@@ -1926,6 +1959,19 @@ impl Instructions {
     pub fn res(r: &mut u8, b: u8) {
         *r &= !(1u8 << b);
     }
+
+    pub fn adc(a_reg: &mut u8, n: u8, f_reg: &mut FRegister) {
+        let carry: u8 = if f_reg.carry { 1 } else { 0 };
+        let res: u8 = a_reg.wrapping_add(n).wrapping_add(carry);
+        let res_l: usize = *a_reg as usize + n as usize + carry as usize;
+
+        f_reg.zero = res == 0;
+        f_reg.substract = false;
+        f_reg.half_carry = (*a_reg & 0xF) + (n & 0xF) + carry > 0xF;
+        f_reg.carry = res_l > 255;
+        *a_reg = res;
+    }
+
     pub fn srl(reg: &mut u8, f_reg: &mut FRegister) {
         let res: u8 = *reg >> 1;
 
