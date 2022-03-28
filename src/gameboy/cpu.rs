@@ -404,6 +404,10 @@ impl Cpu {
                 mem.write_u8(self.registers.a, address as usize);
                 8
             }
+            0x3 => {
+                Instructions::inc_nn(&mut self.registers.b, &mut self.registers.c);
+                8
+            }
             0x4 => {
                 Instructions::inc(&mut self.registers.b, &mut self.registers.f);
                 4
@@ -641,6 +645,10 @@ impl Cpu {
 
                 mem.write_u8(self.registers.a, address as usize);
                 Instructions::dec_nn(&mut self.registers.h, &mut self.registers.l);
+                8
+            }
+            0x33 => {
+                self.registers.sp = self.registers.sp.wrapping_add(1);
                 8
             }
             0x34 => {
