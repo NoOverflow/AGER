@@ -8,6 +8,7 @@ pub mod registers;
 use cpu::Cpu;
 use gpu::Gpu;
 use mbc::mbc0::MBC0;
+use mbc::mbc1::MBC1;
 use memory::Memory;
 
 use std::fs::File;
@@ -45,6 +46,7 @@ impl Gameboy {
         self.mem_map.rom = match buffer[0x147] {
             // TODO: Move to an enum
             0x0 => Box::new(MBC0::new(buffer)),
+            0x1 => Box::new(MBC1::new(buffer)),
             _ => panic!(
                 "Game requires a MBC of type {} which is not yet implemented.",
                 buffer[0x147]

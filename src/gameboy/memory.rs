@@ -99,14 +99,14 @@ impl From<u8> for Joypad {
 
 pub struct Memory {
     // Memory bounds
-    rom_address_bound: Range<usize>,
-    vram_address_bound: Range<usize>,
-    sram8_address_bound: Range<usize>,
-    wram_address_bound: Range<usize>,
-    iram8_echo_address_bound: Range<usize>,
-    oam_address_bound: Range<usize>,
-    io_address_bound: Range<usize>,
-    hram_address_bound: Range<usize>,
+    pub rom_address_bound: Range<usize>,
+    pub vram_address_bound: Range<usize>,
+    pub sram8_address_bound: Range<usize>,
+    pub wram_address_bound: Range<usize>,
+    pub iram8_echo_address_bound: Range<usize>,
+    pub oam_address_bound: Range<usize>,
+    pub io_address_bound: Range<usize>,
+    pub hram_address_bound: Range<usize>,
 
     // Memory
     boot: &'static [u8; 256],

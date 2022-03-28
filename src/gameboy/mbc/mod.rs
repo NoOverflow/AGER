@@ -1,4 +1,5 @@
 pub mod mbc0;
+pub mod mbc1;
 
 pub enum MbcId {
     MBC0 = 0x0,
