@@ -127,6 +127,42 @@ impl Cpu {
                 Instructions::swap(&mut self.registers.a, &mut self.registers.f);
                 8
             }
+            0x38 => {
+                Instructions::srl(&mut self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x39 => {
+                Instructions::srl(&mut self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x3A => {
+                Instructions::srl(&mut self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x3B => {
+                Instructions::srl(&mut self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x3C => {
+                Instructions::srl(&mut self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x3D => {
+                Instructions::srl(&mut self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x3E => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::srl(&mut v, &mut self.registers.f);
+                mem.write_u8(v, address as usize);
+                16
+            }
+            0x3F => {
+                Instructions::srl(&mut self.registers.a, &mut self.registers.f);
+                8
+            }
             0x7C => {
                 Instructions::bit(7, self.registers.h, &mut self.registers.f);
                 8
@@ -1889,6 +1925,15 @@ impl Instructions {
 
     pub fn res(r: &mut u8, b: u8) {
         *r &= !(1u8 << b);
+    }
+    pub fn srl(reg: &mut u8, f_reg: &mut FRegister) {
+        let res: u8 = *reg >> 1;
+
+        f_reg.zero = res == 0;
+        f_reg.substract = false;
+        f_reg.half_carry = false;
+        f_reg.carry = *reg & 0x1 == 0x1;
+        *reg = res;
     }
 }
 
