@@ -307,6 +307,16 @@ impl Cpu {
                 self.registers.f.half_carry = true;
                 4
             }
+            0x30 => {
+                let offset: i8 = self.fetch_u8(mem) as i8;
+
+                if !self.registers.f.carry {
+                    Instructions::jr_n(offset, &mut self.registers.pc);
+                    12
+                } else {
+                    8
+                }
+            }
             0x31 => {
                 self.registers.sp = self.fetch_u16(mem);
                 12
@@ -330,6 +340,16 @@ impl Cpu {
                 self.registers.f.half_carry = false;
                 self.registers.f.carry = true;
                 4
+            }
+            0x38 => {
+                let offset: i8 = self.fetch_u8(mem) as i8;
+
+                if self.registers.f.carry {
+                    Instructions::jr_n(offset, &mut self.registers.pc);
+                    12
+                } else {
+                    8
+                }
             }
             0x39 => {
                 Instructions::add_nn(
@@ -1003,6 +1023,12 @@ impl Cpu {
                 self.push_word(mem, self.registers.pc);
                 self.registers.pc = 0x20;
                 32
+            }
+            0xE9 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+
+                self.registers.pc = address;
+                4
             }
             0xEA => {
                 let address: u16 = self.fetch_u16(mem);
