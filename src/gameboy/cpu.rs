@@ -1191,11 +1191,48 @@ impl Cpu {
                 Instructions::or(&mut self.registers.a, &mut self.registers.f, v);
                 4
             }
+            0xB8 => {
+                Instructions::cp(self.registers.a, self.registers.b, &mut self.registers.f);
+                4
+            }
+            0xB9 => {
+                Instructions::cp(self.registers.a, self.registers.c, &mut self.registers.f);
+                4
+            }
+            0xBA => {
+                Instructions::cp(self.registers.a, self.registers.d, &mut self.registers.f);
+                4
+            }
+            0xBB => {
+                Instructions::cp(self.registers.a, self.registers.e, &mut self.registers.f);
+                4
+            }
+            0xBC => {
+                Instructions::cp(self.registers.a, self.registers.h, &mut self.registers.f);
+                4
+            }
+            0xBD => {
+                Instructions::cp(self.registers.a, self.registers.l, &mut self.registers.f);
+                4
+            }
             0xBE => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
                 let v: u8 = mem.read_u8(address as usize);
 
                 Instructions::cp(self.registers.a, v, &mut self.registers.f);
+                8
+            }
+            0xBF => {
+                Instructions::cp(self.registers.a, self.registers.a, &mut self.registers.f);
+                4
+            }
+            0xC0 => {
+                if !self.registers.f.zero {
+                    let address: u16 = self.pop_word(mem);
+
+                    self.registers.pc = address;
+                    return 20;
+                }
                 8
             }
             0xC1 => {
