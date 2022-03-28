@@ -130,6 +130,17 @@ impl Cpu {
                 Instructions::ld_n(&mut self.registers.b, v);
                 8
             }
+            0x9 => {
+                let v: u16 = BinUtils::u16_from_u8s(self.registers.b, self.registers.c);
+
+                Instructions::add_nn(
+                    &mut self.registers.h,
+                    &mut self.registers.l,
+                    v,
+                    &mut self.registers.f,
+                );
+                8
+            }
             0xB => {
                 Instructions::dec_nn(&mut self.registers.b, &mut self.registers.c);
                 8
@@ -185,6 +196,17 @@ impl Cpu {
 
                 Instructions::jr_n(offset, &mut self.registers.pc);
                 12
+            }
+            0x19 => {
+                let v: u16 = BinUtils::u16_from_u8s(self.registers.d, self.registers.e);
+
+                Instructions::add_nn(
+                    &mut self.registers.h,
+                    &mut self.registers.l,
+                    v,
+                    &mut self.registers.f,
+                );
+                8
             }
             0x1A => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.d, self.registers.e);
@@ -250,6 +272,17 @@ impl Cpu {
                     8
                 }
             }
+            0x29 => {
+                let v: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+
+                Instructions::add_nn(
+                    &mut self.registers.h,
+                    &mut self.registers.l,
+                    v,
+                    &mut self.registers.f,
+                );
+                8
+            }
             0x2A => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
                 let v: u8 = mem.read_u8(address as usize);
@@ -297,6 +330,15 @@ impl Cpu {
                 self.registers.f.half_carry = false;
                 self.registers.f.carry = true;
                 4
+            }
+            0x39 => {
+                Instructions::add_nn(
+                    &mut self.registers.h,
+                    &mut self.registers.l,
+                    self.registers.sp,
+                    &mut self.registers.f,
+                );
+                8
             }
             0x3B => {
                 self.registers.sp = self.registers.sp.wrapping_sub(1);
@@ -1150,6 +1192,18 @@ impl Instructions {
         f_reg.half_carry = ((*a_reg & 0xF) + (v & 0xF)) & 0x10 != 0;
         f_reg.carry = *a_reg > 255 - v;
         *a_reg = result;
+    }
+
+    pub fn add_nn(h: &mut u8, l: &mut u8, v: u16, f_reg: &mut FRegister) {
+        let hl: u16 = BinUtils::u16_from_u8s(*h, *l);
+        let hl_a: u16 = hl.wrapping_add(v);
+        let hlu8s: (u8, u8) = BinUtils::u8s_from_u16(hl_a);
+
+        f_reg.substract = false;
+        f_reg.carry = hl > (0xFFFF - v);
+        f_reg.half_carry = (hl & 0x07FF) + (v & 0x07FF) > 0x07FF;
+        *h = hlu8s.0;
+        *l = hlu8s.1;
     }
 }
 
