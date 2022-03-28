@@ -454,6 +454,10 @@ impl Cpu {
                 Instructions::ld_n(&mut self.registers.c, v);
                 8
             }
+            0xF => {
+                Instructions::rrc(&mut self.registers.a, &mut self.registers.f);
+                4
+            }
             0x11 => {
                 let dw: u16 = self.fetch_u16(mem);
                 let u8s: (u8, u8) = BinUtils::u8s_from_u16(dw);
@@ -531,6 +535,10 @@ impl Cpu {
 
                 Instructions::ld_n(&mut self.registers.e, v);
                 8
+            }
+            0x1F => {
+                Instructions::rr(&mut self.registers.a, &mut self.registers.f);
+                4
             }
             0x20 => {
                 let offset: i8 = self.fetch_u8(mem) as i8;
