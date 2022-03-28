@@ -952,6 +952,12 @@ impl Cpu {
                 self.registers.e = u8s.1;
                 12
             }
+            0xD5 => {
+                let v: u16 = BinUtils::u16_from_u8s(self.registers.d, self.registers.e);
+
+                self.push_word(mem, v);
+                16
+            }
             0xD7 => {
                 self.push_word(mem, self.registers.pc);
                 self.registers.pc = 0x10;
@@ -980,6 +986,12 @@ impl Cpu {
             0xE2 => {
                 mem.write_u8(self.registers.c, 0xFF00 | (self.registers.c as usize));
                 8
+            }
+            0xE5 => {
+                let v: u16 = BinUtils::u16_from_u8s(self.registers.d, self.registers.e);
+
+                self.push_word(mem, v);
+                16
             }
             0xE6 => {
                 let v: u8 = self.fetch_u8(mem);
@@ -1019,6 +1031,12 @@ impl Cpu {
             0xF3 => {
                 self.ime = false;
                 4
+            }
+            0xF5 => {
+                let v: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+
+                self.push_word(mem, v);
+                16
             }
             0xF6 => {
                 let v: u8 = self.fetch_u8(mem);
