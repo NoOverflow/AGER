@@ -133,6 +133,9 @@ pub struct Memory {
     pub stat: Stat,
     pub obp0: u8,
     pub obp1: u8,
+    //   Serial
+    pub sc: u8,
+    pub sb: u8,
 }
 
 impl Memory {
@@ -193,13 +196,18 @@ impl Memory {
             stat: Stat::from(0x0),
             obp0: 0xFF,
             obp1: 0xFF,
+            sc: 0,
+            sb: 0,
         }
     }
 
     pub fn write_io_u8(&mut self, value: u8, address: usize) {
         match address {
-            0xFF01 => (), // TODO Implement SB
-            0xFF02 => (), // TODO Implement SC
+            0xFF01 => {
+                self.sb = value;
+                print!("{}", self.sb as char);
+            } // TODO Implement SB
+            0xFF02 => self.sc = value, // TODO Implement SC
             0xFF11 => self.nr11 = value,
             0xFF12 => (), // TODO Implement NR12
             0xFF13 => (), // TODO Implement NR13
@@ -207,7 +215,37 @@ impl Memory {
             0xFF24 => (), // TODO Implement NR50
             0xFF25 => (), // TODO Implement NR51
             0xFF26 => (), // TODO Implement NR52
-            0xFF40 => self.lcdc = Lcdc::from(value),
+            0xFF40 => {
+                self.lcdc = Lcdc::from(value);
+
+                /*println!(
+                    "- LCD Op {} v:{}",
+                    if self.lcdc.lcd_control_op {
+                        "Enabled"
+                    } else {
+                        "Disabled"
+                    },
+                    value
+                );
+                if self.lcdc.bg_win_display {
+                    println!(
+                        "- BG+Win {}",
+                        if self.lcdc.bg_win_display {
+                            "Enabled"
+                        } else {
+                            "Disabled"
+                        }
+                    );
+                    println!(
+                        "- Win {}",
+                        if self.lcdc.window_display {
+                            "Enabled"
+                        } else {
+                            "Disabled"
+                        }
+                    );
+                }*/
+            }
             0xFF41 => self.stat = Stat::from(value),
             0xFF42 => self.scy = value,
             0xFF43 => self.scx = value,
@@ -225,8 +263,8 @@ impl Memory {
     fn read_io_u8(&self, address: usize) -> u8 {
         match address {
             0xFF00 => u8::from(self.jpad),
-            0xFF01 => 0, // TODO Implement SB
-            0xFF02 => 0, // TODO Implement SC
+            0xFF01 => self.sb, // TODO Implement SB
+            0xFF02 => self.sc, // TODO Implement SC
             0xFF11 => self.nr11,
             0xFF12 => 0, // TODO Implement NR12
             0xFF13 => 0, // TODO Implement NR13
