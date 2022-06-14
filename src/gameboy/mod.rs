@@ -1,5 +1,6 @@
 pub mod bin_utils;
 pub mod cpu;
+pub mod debugger;
 pub mod gpu;
 pub mod mbc;
 pub mod memory;
