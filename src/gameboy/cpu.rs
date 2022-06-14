@@ -665,6 +665,30 @@ impl Cpu {
                 Instructions::ld_n(&mut self.registers.h, v);
                 8
             }
+            0x27 => {
+                let mut a: u8 = self.registers.a;
+                let mut adjust = if self.registers.f.carry { 0x60 } else { 0x0 };
+
+                if self.registers.f.half_carry {
+                    adjust |= 0x06;
+                };
+                if !self.registers.f.substract {
+                    if a & 0x0F > 0x09 {
+                        adjust |= 0x06
+                    };
+                    if a > 0x99 {
+                        adjust |= 0x60;
+                    };
+                    a = a.wrapping_add(adjust);
+                } else {
+                    a = a.wrapping_sub(adjust);
+                }
+                self.registers.f.carry = adjust >= 0x60;
+                self.registers.f.half_carry = false;
+                self.registers.f.zero = a == 0;
+                self.registers.a = a;
+                4
+            }
             0x28 => {
                 let offset: i8 = self.fetch_u8(mem) as i8;
 
@@ -1504,6 +1528,15 @@ impl Cpu {
                 self.registers.c = v8s.1;
                 12
             }
+            0xC2 => {
+                let dw: u16 = self.fetch_u16(mem);
+
+                if !self.registers.f.zero {
+                    self.registers.pc = dw;
+                    return 16;
+                }
+                12
+            }
             0xC3 => {
                 let address: u16 = self.fetch_u16(mem);
 
@@ -1551,6 +1584,15 @@ impl Cpu {
 
                 self.registers.pc = address;
                 16
+            }
+            0xCA => {
+                let dw: u16 = self.fetch_u16(mem);
+
+                if self.registers.f.zero {
+                    self.registers.pc = dw;
+                    return 16;
+                }
+                12
             }
             0xCB => {
                 let extended_op_code: u8 = self.fetch_u8(mem);
@@ -1602,6 +1644,15 @@ impl Cpu {
                 self.registers.e = u8s.1;
                 12
             }
+            0xD2 => {
+                let dw: u16 = self.fetch_u16(mem);
+
+                if !self.registers.f.carry {
+                    self.registers.pc = dw;
+                    return 16;
+                }
+                12
+            }
             0xD4 => {
                 let dw: u16 = self.fetch_u16(mem);
 
@@ -1637,6 +1688,15 @@ impl Cpu {
                     return 20;
                 }
                 8
+            }
+            0xDA => {
+                let dw: u16 = self.fetch_u16(mem);
+
+                if self.registers.f.carry {
+                    self.registers.pc = dw;
+                    return 16;
+                }
+                12
             }
             0xDC => {
                 let dw: u16 = self.fetch_u16(mem);
@@ -1748,6 +1808,20 @@ impl Cpu {
                 self.registers.pc = 0x30;
                 32
             }
+            0xF8 => {
+                let v: u16 = self.fetch_u8(mem) as i8 as i16 as u16;
+                let result: u16 = self.registers.sp.wrapping_add(v);
+                let rsplit: (u8, u8);
+
+                self.registers.f.substract = false;
+                self.registers.f.zero = false;
+                self.registers.f.half_carry = (self.registers.sp & 0x000F) + (v & 0x000F) > 0x000F;
+                self.registers.f.carry = (self.registers.sp & 0x00FF) + (v & 0x00FF) > 0x00FF;
+                rsplit = BinUtils::u8s_from_u16(result);
+                self.registers.h = rsplit.0;
+                self.registers.l = rsplit.1;
+                12
+            }
             0xF9 => {
                 let hl: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
 
@@ -1787,6 +1861,7 @@ impl Cpu {
     pub fn cycle(&mut self, mem: &mut Memory) -> usize {
         let inst_op_code: u8 = self.fetch_u8(mem);
 
+        println!("Calling OPCODE #{:#02x}", inst_op_code);
         return self.call(mem, inst_op_code) as usize;
     }
 }
@@ -1986,4 +2061,40 @@ impl Instructions {
 // TODO: Move to another file
 impl Cpu {
     // Load 16bits value to a 16bits register
+}
+
+#[test]
+fn dec_hc() {
+    let mut a: u8 = 0x40;
+    let mut f: FRegister = FRegister {
+        zero: true,
+        substract: false,
+        half_carry: false,
+        carry: false,
+    };
+
+    Instructions::dec(&mut a, &mut f);
+    assert_eq!(a, 0x3F);
+    assert_eq!(f.zero, false);
+    assert_eq!(f.substract, true);
+    assert_eq!(f.carry, false);
+    assert_eq!(f.half_carry, true);
+}
+
+#[test]
+fn dec_no_hc() {
+    let mut a: u8 = 0x4;
+    let mut f: FRegister = FRegister {
+        zero: true,
+        substract: false,
+        half_carry: false,
+        carry: false,
+    };
+
+    Instructions::dec(&mut a, &mut f);
+    assert_eq!(a, 3);
+    assert_eq!(f.zero, false);
+    assert_eq!(f.substract, true);
+    assert_eq!(f.carry, false);
+    assert_eq!(f.half_carry, false);
 }
