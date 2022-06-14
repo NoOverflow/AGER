@@ -1826,10 +1826,10 @@ impl Instructions {
     }
 
     pub fn dec(reg: &mut u8, f_reg: &mut FRegister) {
+        f_reg.half_carry = (*reg & 0x0F) == 0;
         *reg = (*reg).wrapping_sub(1);
         f_reg.zero = *reg == 0;
         f_reg.substract = true;
-        f_reg.half_carry = (*reg & 0xF) == 0;
     }
 
     pub fn dec_nn(high_reg: &mut u8, low_reg: &mut u8) {
