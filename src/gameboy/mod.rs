@@ -11,7 +11,7 @@ use gpu::Gpu;
 use mbc::mbc0::MBC0;
 use mbc::mbc1::MBC1;
 use memory::Memory;
-
+use registers::FRegister;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -57,6 +57,19 @@ impl Gameboy {
 
     pub fn power_up(&mut self) {
         self.cpu.registers.pc = 0x0;
+
+        self.cpu.registers.pc = 0x100;
+        self.cpu.registers.f = FRegister::from(0xB0);
+        self.cpu.registers.a = 0x1;
+        self.cpu.registers.b = 0x0;
+        self.cpu.registers.c = 0x13;
+        self.cpu.registers.d = 0x0;
+        self.cpu.registers.e = 0xd8;
+        self.cpu.registers.h = 0x01;
+        self.cpu.registers.l = 0x4d;
+
+        self.mem_map.boot_rom_disable = 1;
+
         self.cpu.registers.sp = 0xFFFE;
     }
 
