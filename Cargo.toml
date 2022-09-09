@@ -6,5 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-spin_sleep = "1.1.1"
-glium = "*"
+spin_sleep = "^0"
+glium = "^0"
+gl_loader = "^0"
+gtk = "0.15.5"
+glib = "0.15.12"
+gio = "0.15.12"
