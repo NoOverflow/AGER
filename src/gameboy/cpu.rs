@@ -1942,20 +1942,22 @@ impl Instructions {
     }
 
     pub fn bit(bit: u8, reg: u8, f_reg: &mut FRegister) {
-        f_reg.zero = (reg & (1 << bit)) == 0;
+        f_reg.zero = reg & (1 << (bit as u32)) == 0;
         f_reg.substract = false;
         f_reg.half_carry = true;
     }
 
     pub fn jr_n(offset: i8, pc: &mut u16) {
-        *pc = pc.wrapping_add(offset as u16);
+        *pc = ((*pc as u32 as i32) + (offset as i32)) as u16;
     }
 
     pub fn inc(reg: &mut u8, f_reg: &mut FRegister) {
-        *reg = (*reg).wrapping_add(1);
-        f_reg.zero = *reg == 0;
+        let res: u8 = (*reg).wrapping_add(1);
+
+        f_reg.zero = res == 0;
         f_reg.substract = false;
-        f_reg.half_carry = (*reg & 0xF) == 0xF;
+        f_reg.half_carry = (*reg & 0x0F) + 1 > 0x0F;
+        *reg = res;
     }
 
     pub fn inc_nn(high_reg: &mut u8, low_reg: &mut u8) {
@@ -1967,11 +1969,11 @@ impl Instructions {
     }
 
     pub fn swap(n: &mut u8, f_reg: &mut FRegister) {
-        *n = ((*n & 0xF0u8) >> 4) | ((*n & 0x0F) << 4);
         f_reg.zero = *n == 0;
         f_reg.substract = false;
         f_reg.half_carry = false;
         f_reg.carry = false;
+        *n = (*n >> 4) | (*n << 4);
     }
 
     pub fn rr(reg: &mut u8, f_reg: &mut FRegister) {
@@ -2040,8 +2042,8 @@ impl Instructions {
 
         f_reg.zero = result == 0;
         f_reg.substract = false;
-        f_reg.half_carry = ((*a_reg & 0xF) + (v & 0xF)) & 0x10 != 0;
-        f_reg.carry = *a_reg > 255 - v;
+        f_reg.half_carry = ((*a_reg & 0xF) + (v & 0xF)) > 0xF;
+        f_reg.carry = (*a_reg as u16) + (v as u16) > 0xFF;
         *a_reg = result;
     }
 
@@ -2074,12 +2076,12 @@ impl Instructions {
     }
 
     pub fn srl(reg: &mut u8, f_reg: &mut FRegister) {
+        f_reg.carry = *reg & 0x1 == 0x1;
         let res: u8 = *reg >> 1;
 
         f_reg.zero = res == 0;
         f_reg.substract = false;
         f_reg.half_carry = false;
-        f_reg.carry = *reg & 0x1 == 0x1;
         *reg = res;
     }
 }
