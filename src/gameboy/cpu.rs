@@ -38,9 +38,9 @@ impl Cpu {
     pub fn push_word(&mut self, mem: &mut Memory, v: u16) {
         let u8s: (u8, u8) = BinUtils::u8s_from_u16(v);
 
-        // Store LS Byte first
-        self.push(mem, u8s.1);
+        // Store HS Byte first
         self.push(mem, u8s.0);
+        self.push(mem, u8s.1);
     }
 
     pub fn pop(&mut self, mem: &mut Memory) -> u8 {
@@ -51,8 +51,8 @@ impl Cpu {
     }
 
     pub fn pop_word(&mut self, mem: &mut Memory) -> u16 {
-        let high: u8 = self.pop(mem);
         let low: u8 = self.pop(mem);
+        let high: u8 = self.pop(mem);
 
         return BinUtils::u16_from_u8s(high, low);
     }
@@ -496,8 +496,10 @@ impl Cpu {
             }
             0x8 => {
                 let address: u16 = self.fetch_u16(mem);
+                let v8s: (u8, u8) = BinUtils::u8s_from_u16(self.registers.sp);
 
-                self.registers.sp = address;
+                mem.write_u8(v8s.1, address as usize);
+                mem.write_u8(v8s.0, address as usize + 1);
                 20
             }
             0x9 => {
@@ -620,6 +622,7 @@ impl Cpu {
             }
             0x1F => {
                 Instructions::rr(&mut self.registers.a, &mut self.registers.f);
+                self.registers.f.zero = false;
                 4
             }
             0x20 => {
@@ -1689,6 +1692,13 @@ impl Cpu {
                 }
                 8
             }
+            0xD9 => {
+                let address: u16 = self.pop_word(mem);
+
+                self.registers.pc = address;
+                // TODO: Enable interrupts
+                8
+            }
             0xDA => {
                 let dw: u16 = self.fetch_u16(mem);
 
@@ -1758,6 +1768,7 @@ impl Cpu {
             0xEA => {
                 let address: u16 = self.fetch_u16(mem);
 
+                // println!("W {:x?} = {:x?}", address, self.registers.a);
                 mem.write_u8(self.registers.a, address as usize);
                 16
             }
@@ -1832,6 +1843,7 @@ impl Cpu {
                 let address: u16 = self.fetch_u16(mem);
                 let v: u8 = mem.read_u8(address as usize);
 
+                // println!("R {:x?} = {:x?}", address, v);
                 self.registers.a = v;
                 16
             }
@@ -1861,7 +1873,21 @@ impl Cpu {
     pub fn cycle(&mut self, mem: &mut Memory) -> usize {
         let inst_op_code: u8 = self.fetch_u8(mem);
 
-        println!("Calling OPCODE #{:#02x}", inst_op_code);
+        /* println!("{:x?}: {:x?}                            A:{:x?} F:{:x?} B:{:x?} C:{:x?} D:{:x?} E:{:x?} H:{:x?} L:{:x?} LY:{:x?} SP:{:x?}",
+            self.registers.pc - 1,
+            inst_op_code,
+            self.registers.a,
+            u8::from(self.registers.f),
+            self.registers.b,
+            self.registers.c,
+            self.registers.d,
+            self.registers.e,
+            self.registers.h,
+            self.registers.l,
+            mem.ly,
+            self.registers.sp
+
+        ); */
         return self.call(mem, inst_op_code) as usize;
     }
 }
