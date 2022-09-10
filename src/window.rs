@@ -1,16 +1,14 @@
 use cgmath::Matrix4;
 use gio::prelude::*;
-use glium::backend::{Backend, Context, Facade};
-use glium::texture::{RawImage2d, Texture2dDataSink};
-use glium::uniforms::MagnifySamplerFilter;
-use glium::{implement_vertex, uniform, Frame, Program, Surface, Texture2d, VertexBuffer};
+use glium::backend::{Context, Facade};
+use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter};
+use glium::{implement_vertex, uniform, Frame, Program, Surface, VertexBuffer};
 use gtk::gdk::GLContext;
 use gtk::glib;
 use gtk::glib::clone;
 use gtk::{prelude::*, Inhibit};
 use gtk::{ApplicationWindow, GLArea};
 use gtk4 as gtk;
-use gtk4_glium::GtkFacade;
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 use std::sync::mpsc::Receiver;
@@ -42,9 +40,9 @@ impl Window {
 
     pub fn init_window(&mut self, rx: Arc<Mutex<Receiver<Vec<u32>>>>) {
         let application = gtk::Application::new(Some("com.nooverflow.ager"), Default::default());
-        let mut render_context: Rc<RefCell<RenderContext>> = Rc::new(RefCell::new(RenderContext {
+        let render_context: Rc<RefCell<RenderContext>> = Rc::new(RefCell::new(RenderContext {
             render_texture: None,
-            rx: rx,
+            rx,
             program: None,
         }));
 
@@ -57,8 +55,8 @@ impl Window {
     fn gl_render(
         render_context: RefMut<RenderContext>,
         facade: &Rc<Context>,
-        _glArea: &GLArea,
-        _glcontext: &GLContext,
+        _gl_area: &GLArea,
+        _gl_context: &GLContext,
     ) -> Inhibit {
         let context = facade.get_context();
         let mut frame = Frame::new(context.clone(), context.get_framebuffer_dimensions());
@@ -74,7 +72,6 @@ impl Window {
         let (rect_vertices, rect_indices) = {
             let ib_data: Vec<u16> = vec![0, 1, 2, 1, 3, 2];
             let vb: VertexBuffer<Vertex> = glium::VertexBuffer::empty_dynamic(facade, 4).unwrap();
-            // Creates an index buffer showing how the triangles would be made from the four points.
             let ib = glium::IndexBuffer::new(
                 context,
                 glium::index::PrimitiveType::TrianglesList,
@@ -123,27 +120,17 @@ impl Window {
         };
 
         let tex = glium::Texture2d::new(facade, rawimage2d).unwrap();
-        tex.as_surface().fill(&frame, MagnifySamplerFilter::Nearest);
-
-        let (target_w, target_h) = frame.get_dimensions();
-
-        frame.blit_whole_color_to(
-            &frame,
-            &glium::BlitTarget {
-                left: 0,
-                bottom: target_h,
-                width: -(target_w as i32),
-                height: (target_h as i32),
-            },
-            MagnifySamplerFilter::Nearest,
-        );
-
+        let behavior = glium::uniforms::SamplerBehavior {
+            minify_filter: MinifySamplerFilter::Nearest,
+            magnify_filter: MagnifySamplerFilter::Nearest,
+            ..Default::default()
+        };
         let uniforms = uniform! {
             projection: perspective,
-            tex: &tex,
+            tex: glium::uniforms::Sampler(&tex, behavior),
         };
 
-        frame.draw(
+        match frame.draw(
             &rect_vertices,
             &rect_indices,
             &(render_context
@@ -155,8 +142,10 @@ impl Window {
                 .borrow()),
             &uniforms,
             &Default::default(),
-        );
-
+        ) {
+            Ok(_) => (),
+            _ => panic!("Couldn't render"),
+        }
         frame.finish().unwrap();
         gtk::Inhibit(true)
     }
@@ -174,20 +163,18 @@ impl Window {
         window.show();
 
         let facade: gtk4_glium::GtkFacade = gtk4_glium::GtkFacade::from_glarea(&glarea).unwrap();
-
-        //
         let vertex_shader_src = r#"
-            #version 140
+            #version 450
             in vec2 position;
             uniform mat4 projection;
             out vec2 v_tex_coords;
 
             void main() {
-                if (gl_VertexID % 4 == 0) { // First vertex
+                if (gl_VertexID % 4 == 0) {
                     v_tex_coords = vec2(0.0, 1.0);
-                } else if (gl_VertexID % 4 == 1) { // Second vertex
+                } else if (gl_VertexID % 4 == 1) {
                     v_tex_coords = vec2(1.0, 1.0);
-                } else if (gl_VertexID % 4 == 2) { // Third vertex
+                } else if (gl_VertexID % 4 == 2) {
                     v_tex_coords = vec2(0.0, 0.0);
                 } else { // Fourth vertex
                     v_tex_coords = vec2(1.0, 0.0);
@@ -197,7 +184,7 @@ impl Window {
         "#;
 
         let fragment_shader_src = r#"
-            #version 140
+            #version 450
             in vec2 v_tex_coords;
             out vec4 color;
             uniform sampler2D tex;
@@ -206,7 +193,7 @@ impl Window {
             }
         "#;
 
-        render_context.to_owned().borrow_mut().program = Some(Rc::new(RefCell::new(
+        render_context.borrow_mut().program = Some(Rc::new(RefCell::new(
             glium::Program::from_source(&facade, vertex_shader_src, fragment_shader_src, None)
                 .unwrap(),
         )));
