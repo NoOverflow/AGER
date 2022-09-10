@@ -1,6 +1,9 @@
+use cgmath::Matrix4;
 use gio::prelude::*;
 use glium::backend::{Backend, Context, Facade};
-use glium::{Frame, Surface, Texture2d};
+use glium::texture::{RawImage2d, Texture2dDataSink};
+use glium::uniforms::MagnifySamplerFilter;
+use glium::{implement_vertex, uniform, Frame, Program, Surface, Texture2d, VertexBuffer};
 use gtk::gdk::GLContext;
 use gtk::glib;
 use gtk::glib::clone;
@@ -22,30 +25,27 @@ pub struct Window {}
 
 #[derive(Clone)]
 pub struct RenderContext {
-    pub index: u32,
     pub render_texture: Option<Rc<RefCell<glium::texture::texture2d::Texture2d>>>,
     pub rx: Arc<Mutex<Receiver<Vec<u32>>>>,
+    pub program: Option<Rc<RefCell<Program>>>,
 }
 
-/* pub struct RenderContext {
-    pub frame: Option<Rc<RefCell<glium::Frame>>>,
-    pub render_texture: Option<Rc<RefCell<glium::texture::texture2d::Texture2d>>>,
-    pub rx: Rc<RefCell<Receiver<Vec<u32>>>>,
-} */
+#[derive(Copy, Clone)]
+struct Vertex {
+    position: [f32; 2],
+}
 
 impl Window {
     pub fn new() -> Self {
         Window {}
     }
 
-    fn draw_buffer(render_context: RefMut<RenderContext>, frame: &Frame, buffer: &Vec<u32>) {}
-
     pub fn init_window(&mut self, rx: Arc<Mutex<Receiver<Vec<u32>>>>) {
         let application = gtk::Application::new(Some("com.nooverflow.ager"), Default::default());
         let mut render_context: Rc<RefCell<RenderContext>> = Rc::new(RefCell::new(RenderContext {
-            index: 9,
             render_texture: None,
             rx: rx,
+            program: None,
         }));
 
         application.connect_activate(clone!(
@@ -62,18 +62,59 @@ impl Window {
     ) -> Inhibit {
         let context = facade.get_context();
         let mut frame = Frame::new(context.clone(), context.get_framebuffer_dimensions());
-
-        frame.clear_color(0.0, 0.0, 0.0, 1.0);
-        println!("{}", render_context.index);
-
-        let mut buffer: Vec<u32> = Vec::new();
+        let buffer: Vec<u32>;
 
         match render_context.rx.lock().unwrap().recv() {
             Ok(rx_buffer) => buffer = rx_buffer,
-            Error => (),
+            _ => panic!("Couldn't receive render buffer"),
         }
 
-        let interpolation_type = glium::uniforms::MagnifySamplerFilter::Nearest;
+        implement_vertex!(Vertex, position);
+
+        let (rect_vertices, rect_indices) = {
+            let ib_data: Vec<u16> = vec![0, 1, 2, 1, 3, 2];
+            let vb: VertexBuffer<Vertex> = glium::VertexBuffer::empty_dynamic(facade, 4).unwrap();
+            // Creates an index buffer showing how the triangles would be made from the four points.
+            let ib = glium::IndexBuffer::new(
+                context,
+                glium::index::PrimitiveType::TrianglesList,
+                &ib_data,
+            )
+            .unwrap();
+
+            (vb, ib)
+        };
+
+        {
+            let vb_data = vec![
+                Vertex {
+                    position: [0.0, 0.0],
+                },
+                Vertex {
+                    position: [WINDOW_WIDTH as f32, 0.0],
+                },
+                Vertex {
+                    position: [0.0, WINDOW_HEIGHT as f32],
+                },
+                Vertex {
+                    position: [WINDOW_WIDTH as f32, WINDOW_HEIGHT as f32],
+                },
+            ];
+            rect_vertices.write(&vb_data);
+        }
+
+        let perspective = {
+            let matrix: Matrix4<f32> = cgmath::ortho(
+                0.0,
+                WINDOW_WIDTH as f32,
+                0.0,
+                WINDOW_HEIGHT as f32,
+                -1.0,
+                1.0,
+            );
+            Into::<[[f32; 4]; 4]>::into(matrix)
+        };
+
         let rawimage2d = glium::texture::RawImage2d {
             data: std::borrow::Cow::Borrowed(&buffer),
             width: WINDOW_WIDTH as u32,
@@ -81,41 +122,40 @@ impl Window {
             format: glium::texture::ClientFormat::U8U8U8U8,
         };
 
-        render_context
-            .to_owned()
-            .render_texture
-            .as_mut()
-            .unwrap()
-            .borrow_mut()
-            .write(
-                glium::Rect {
-                    left: 0,
-                    bottom: 0,
-                    width: WINDOW_WIDTH as u32,
-                    height: WINDOW_HEIGHT as u32,
-                },
-                rawimage2d,
-            );
+        let tex = glium::Texture2d::new(facade, rawimage2d).unwrap();
+        tex.as_surface().fill(&frame, MagnifySamplerFilter::Nearest);
 
         let (target_w, target_h) = frame.get_dimensions();
 
-        render_context
-            .to_owned()
-            .render_texture
-            .as_mut()
-            .unwrap()
-            .borrow_mut()
-            .as_surface()
-            .blit_whole_color_to(
-                &frame,
-                &glium::BlitTarget {
-                    left: 0,
-                    bottom: target_h,
-                    width: target_w as i32,
-                    height: -(target_h as i32),
-                },
-                interpolation_type,
-            );
+        frame.blit_whole_color_to(
+            &frame,
+            &glium::BlitTarget {
+                left: 0,
+                bottom: target_h,
+                width: -(target_w as i32),
+                height: (target_h as i32),
+            },
+            MagnifySamplerFilter::Nearest,
+        );
+
+        let uniforms = uniform! {
+            projection: perspective,
+            tex: &tex,
+        };
+
+        frame.draw(
+            &rect_vertices,
+            &rect_indices,
+            &(render_context
+                .program
+                .as_ref()
+                .unwrap()
+                .to_owned()
+                .as_ref()
+                .borrow()),
+            &uniforms,
+            &Default::default(),
+        );
 
         frame.finish().unwrap();
         gtk::Inhibit(true)
@@ -128,30 +168,54 @@ impl Window {
             .default_height(WINDOW_HEIGHT as i32 * SCALE as i32)
             .title("AGER")
             .build();
-        let glarea = GLArea::builder().vexpand(true).build();
+        let glarea = GLArea::builder().build();
 
         window.set_child(Some(&glarea));
         window.show();
 
         let facade: gtk4_glium::GtkFacade = gtk4_glium::GtkFacade::from_glarea(&glarea).unwrap();
 
-        render_context.borrow_mut().index = 3;
-        render_context.borrow_mut().render_texture = Some(Rc::new(RefCell::new(
-            glium::texture::texture2d::Texture2d::empty_with_format(
-                &facade,
-                glium::texture::UncompressedFloatFormat::U8U8U8U8,
-                glium::texture::MipmapsOption::NoMipmap,
-                WINDOW_WIDTH as u32,
-                WINDOW_HEIGHT as u32,
-            )
-            .unwrap(),
+        //
+        let vertex_shader_src = r#"
+            #version 140
+            in vec2 position;
+            uniform mat4 projection;
+            out vec2 v_tex_coords;
+
+            void main() {
+                if (gl_VertexID % 4 == 0) { // First vertex
+                    v_tex_coords = vec2(0.0, 1.0);
+                } else if (gl_VertexID % 4 == 1) { // Second vertex
+                    v_tex_coords = vec2(1.0, 1.0);
+                } else if (gl_VertexID % 4 == 2) { // Third vertex
+                    v_tex_coords = vec2(0.0, 0.0);
+                } else { // Fourth vertex
+                    v_tex_coords = vec2(1.0, 0.0);
+                }
+                gl_Position = projection * vec4(position, 0.0, 1.0);
+            }
+        "#;
+
+        let fragment_shader_src = r#"
+            #version 140
+            in vec2 v_tex_coords;
+            out vec4 color;
+            uniform sampler2D tex;
+            void main() {
+                color = texture(tex, v_tex_coords);
+            }
+        "#;
+
+        render_context.to_owned().borrow_mut().program = Some(Rc::new(RefCell::new(
+            glium::Program::from_source(&facade, vertex_shader_src, fragment_shader_src, None)
+                .unwrap(),
         )));
 
         glarea.connect_render(clone!(@strong render_context => move |_glarea, _glcontext|
             Self::gl_render(render_context.borrow_mut(), facade.get_context(), _glarea, _glcontext)
         ));
 
-        let frame_time = Duration::new(0, 1_000_000_000 / 60);
+        let frame_time = Duration::new(0, 1_000_000_000 / 24);
         glib::source::timeout_add_local(frame_time, move || {
             glarea.queue_draw();
             glib::source::Continue(true)
