@@ -6,6 +6,8 @@ use spin_sleep::LoopHelper;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
+use std::sync::Arc;
+use std::sync::Mutex;
 use std::thread;
 
 fn clock_loop(tx: Sender<Vec<u32>>) {
@@ -15,14 +17,14 @@ fn clock_loop(tx: Sender<Vec<u32>>) {
         .build_with_target_rate(60.0);
     let mut stop = false;
 
-    gb.load_cartridge("res/test/licensed/tetris.gb");
+    gb.load_cartridge("res/test/individual/07-jr,jp,call,ret,rst.gb");
     gb.power_up();
     while !stop {
         let delta = loop_helper.loop_start();
 
         gb.cycle(delta.as_secs());
         if let Some(fps) = loop_helper.report_rate() {
-            println!("Current FPS: {}", fps);
+            // println!("Current FPS: {}", fps);
         }
         let buffer = gb.get_screen_buffer();
 
@@ -40,5 +42,7 @@ fn main() {
     thread::spawn(move || {
         clock_loop(tx);
     });
-    window::init_window(rx);
+    let rx_mutex = Arc::new(Mutex::from(rx));
+
+    window::Window::new().init_window(rx_mutex);
 }
