@@ -280,6 +280,7 @@ impl Memory {
             0xFF47 => 0xFC, // TODO Implement it and link it to selected cpalette
             0xFF48 => self.obp0,
             0xFF49 => self.obp1,
+            0xFF4D => 0,
 
             0xFF0F => u8::from(self.iflag),
             // This is a special register used by the boot rom
@@ -317,17 +318,17 @@ impl Memory {
                 // During boot, any read from value 0x0 to 0xFF is redirected to the boot rom
                 return self.boot[address];
             }
-            return self.rom.read_u8(address);
+            self.rom.read_u8(address)
         } else if self.hram_address_bound.contains(&address) {
-            return self.hram[address - self.hram_address_bound.start];
+            self.hram[address - self.hram_address_bound.start]
         } else if self.vram_address_bound.contains(&address) {
-            return self.vram[address - self.vram_address_bound.start];
+            self.vram[address - self.vram_address_bound.start]
         } else if self.wram_address_bound.contains(&address) {
-            return self.wram[address - self.wram_address_bound.start];
+            self.wram[address - self.wram_address_bound.start]
         } else if self.oam_address_bound.contains(&address) {
-            return self.oam[address - self.oam_address_bound.start];
+            self.oam[address - self.oam_address_bound.start]
         } else if self.io_address_bound.contains(&address) || address == 0xFFFF {
-            return self.read_io_u8(address);
+            self.read_io_u8(address)
         } else {
             panic!(
                 "Read: {:#02x} is not an implemented memory address",

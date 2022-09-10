@@ -60,12 +60,7 @@ impl Window {
     ) -> Inhibit {
         let context = facade.get_context();
         let mut frame = Frame::new(context.clone(), context.get_framebuffer_dimensions());
-        let buffer: Vec<u32>;
-
-        match render_context.rx.lock().unwrap().recv() {
-            Ok(rx_buffer) => buffer = rx_buffer,
-            _ => panic!("Couldn't receive render buffer"),
-        }
+        let buffer: Vec<u32> = render_context.rx.lock().unwrap().recv().unwrap();
 
         implement_vertex!(Vertex, position);
 
