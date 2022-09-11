@@ -12,6 +12,7 @@ The goal is to implement a Gameboy emulator that replicates a real machine as cl
 - Controller support
 - Cheats support
 - CPU Speed control
+- Custom color palette
 
 ## Tests passing
 |Test name|Status  |
