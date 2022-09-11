@@ -27,7 +27,7 @@ impl Cpu {
         let low: u16 = self.fetch_u8(mem) as u16;
         let high: u16 = self.fetch_u8(mem) as u16;
 
-        return high << 8 | low;
+        high << 8 | low
     }
 
     pub fn push(&mut self, mem: &mut Memory, v: u8) {
@@ -54,7 +54,7 @@ impl Cpu {
         let low: u8 = self.pop(mem);
         let high: u8 = self.pop(mem);
 
-        return BinUtils::u16_from_u8s(high, low);
+        BinUtils::u16_from_u8s(high, low)
     }
 
     fn call_extended(&mut self, mem: &mut Memory, op_code: u8) -> u8 {
@@ -494,6 +494,10 @@ impl Cpu {
                 Instructions::ld_n(&mut self.registers.b, v);
                 8
             }
+            0x7 => {
+                Instructions::rlc(&mut self.registers.a, &mut self.registers.f);
+                4
+            }
             0x8 => {
                 let address: u16 = self.fetch_u16(mem);
                 let v8s: (u8, u8) = BinUtils::u8s_from_u16(self.registers.sp);
@@ -540,6 +544,10 @@ impl Cpu {
             }
             0xF => {
                 Instructions::rrc(&mut self.registers.a, &mut self.registers.f);
+                4
+            }
+            0x10 => {
+                mem.halted = true;
                 4
             }
             0x11 => {
@@ -1600,7 +1608,7 @@ impl Cpu {
             0xCB => {
                 let extended_op_code: u8 = self.fetch_u8(mem);
 
-                return self.call_extended(mem, extended_op_code);
+                self.call_extended(mem, extended_op_code)
             }
             0xCC => {
                 let dw: u16 = self.fetch_u16(mem);
@@ -1718,6 +1726,12 @@ impl Cpu {
                 }
                 12
             }
+            0xDE => {
+                let dv: u8 = self.fetch_u8(mem);
+
+                Instructions::sbc(&mut self.registers.a, dv, &mut self.registers.f);
+                8
+            }
             0xDF => {
                 self.push_word(mem, self.registers.pc);
                 self.registers.pc = 0x18;
@@ -1758,6 +1772,17 @@ impl Cpu {
                 self.push_word(mem, self.registers.pc);
                 self.registers.pc = 0x20;
                 32
+            }
+            0xE8 => {
+                let v: u16 = self.fetch_u8(mem) as i8 as i16 as u16;
+
+                // TODO: Use mixed_integer_ops when available
+                self.registers.f.half_carry = (self.registers.sp & 0x000F) + (v & 0x000F) > 0x000F;
+                self.registers.f.carry = (self.registers.sp & 0x00FF) + (v & 0x00FF) > 0x00FF;
+                self.registers.sp = self.registers.sp.wrapping_add(v);
+                self.registers.f.zero = false;
+                self.registers.f.substract = false;
+                16
             }
             0xE9 => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
@@ -1888,16 +1913,12 @@ impl Cpu {
             self.registers.sp
 
         ); */
-        return self.call(mem, inst_op_code) as usize;
+        self.call(mem, inst_op_code) as usize
     }
 }
 
 struct Instructions {}
 impl Instructions {
-    pub fn ld_nn(reg: &mut u16, v: u16) {
-        *reg = v;
-    }
-
     pub fn ld_n(reg: &mut u8, v: u8) {
         *reg = v;
     }
@@ -2036,6 +2057,17 @@ impl Instructions {
         *a_reg = result;
     }
 
+    pub fn sbc(a_reg: &mut u8, v: u8, f_reg: &mut FRegister) {
+        let carry: u8 = if f_reg.carry { 1 } else { 0 };
+        let result: u8 = a_reg.wrapping_sub(v).wrapping_sub(carry);
+
+        f_reg.zero = result == 0;
+        f_reg.substract = true;
+        f_reg.carry = (*a_reg as u16) < (v as u16) + (carry as u16);
+        f_reg.half_carry = (*a_reg & 0xF) < ((v & 0xF) + carry);
+        *a_reg = result;
+    }
+
     // TODO: Check HC and C flags
     pub fn add(a_reg: &mut u8, v: u8, f_reg: &mut FRegister) {
         let result: u8 = a_reg.wrapping_add(v);
@@ -2103,10 +2135,10 @@ fn dec_hc() {
 
     Instructions::dec(&mut a, &mut f);
     assert_eq!(a, 0x3F);
-    assert_eq!(f.zero, false);
-    assert_eq!(f.substract, true);
-    assert_eq!(f.carry, false);
-    assert_eq!(f.half_carry, true);
+    assert!(!f.zero);
+    assert!(f.substract);
+    assert!(!f.carry);
+    assert!(f.half_carry);
 }
 
 #[test]
@@ -2121,8 +2153,8 @@ fn dec_no_hc() {
 
     Instructions::dec(&mut a, &mut f);
     assert_eq!(a, 3);
-    assert_eq!(f.zero, false);
-    assert_eq!(f.substract, true);
-    assert_eq!(f.carry, false);
-    assert_eq!(f.half_carry, false);
+    assert!(!f.zero);
+    assert!(f.substract);
+    assert!(!f.carry);
+    assert!(!f.half_carry);
 }

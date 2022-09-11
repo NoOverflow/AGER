@@ -11,16 +11,14 @@ impl MBC0 {
         if buffer.len() > 0x8000 {
             panic!("Got too much data for a MBC of type 0.");
         }
-        for i in 0..buffer.len() {
-            mbc.rom[i] = buffer[i];
-        }
-        return mbc;
+        mbc.rom[..buffer.len()].copy_from_slice(&buffer[..]);
+        mbc
     }
 }
 
 impl MemoryBankController for MBC0 {
     fn read_u8(&self, address: usize) -> u8 {
-        return self.rom[address as usize];
+        self.rom[address as usize]
     }
 
     fn write_u8(&mut self, address: usize, v: u8) {

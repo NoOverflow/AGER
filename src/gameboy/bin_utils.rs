@@ -2,7 +2,7 @@ pub struct BinUtils {}
 
 impl BinUtils {
     pub fn u16_from_u8s(high: u8, low: u8) -> u16 {
-        return (low as u16) | ((high as u16) << 8);
+        (low as u16) | ((high as u16) << 8)
     }
 
     //(High, Low)

@@ -55,7 +55,7 @@ impl From<Lcdc> for u8 {
         if item.bg_win_display {
             ret |= 1;
         }
-        return ret;
+        ret
     }
 }
 
@@ -102,7 +102,7 @@ impl From<Stat> for u8 {
             ret |= 1 << 2;
         }
         ret |= item.mode_flag;
-        return ret;
+        ret
     }
 }
 
@@ -144,7 +144,7 @@ impl Gpu {
             }
             i += 2
         }
-        return sprite_data;
+        sprite_data
     }
 
     pub fn get_screen_buffer(&self, mem: &Memory) -> Vec<u32> {
@@ -154,15 +154,15 @@ impl Gpu {
             let mut buffer_y = y + mem.scy as isize;
 
             if buffer_y > 255 {
-                buffer_y = buffer_y - 255;
+                buffer_y -= 255;
             } else if buffer_y < 0 {
-                buffer_y = 255 + buffer_y;
+                buffer_y += 255;
             }
             for x in 0..160 {
                 ret[y as usize * 160 + x] = self.buffer[buffer_y as usize * 256 + x];
             }
         }
-        return ret;
+        ret
     }
 
     fn gbcolor_to_rgb(&self, gb_color: u8) -> u32 {
@@ -195,9 +195,9 @@ impl Gpu {
                 let bx = tile_x * 8 + lx;
 
                 if by > 255 {
-                    by = by - 255;
+                    by -= by;
                 } else if by < 0 {
-                    by = 255 + by;
+                    by += 255;
                 }
                 self.buffer[by as usize * 256 + bx] = self.gbcolor_to_rgb(tdata[ly][lx]);
             }
@@ -213,7 +213,7 @@ impl Gpu {
 
     pub fn cycle(&mut self, mem: &mut Memory, ticks: usize) -> bool {
         if !mem.lcdc.lcd_control_op {
-            false;
+            return false;
         }
 
         // Timings taken from page 54 gameboy CPU man
@@ -241,6 +241,6 @@ impl Gpu {
             }
             self.vblank = true
         }
-        return false;
+        false
     }
 }

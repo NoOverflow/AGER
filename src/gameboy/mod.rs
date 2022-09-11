@@ -14,12 +14,12 @@ use memory::Memory;
 use registers::FRegister;
 use std::fs::File;
 use std::io::prelude::*;
+use std::sync::{Arc, Mutex};
 
 pub struct Gameboy {
-    cpu: Cpu,
+    pub cpu: Cpu,
     pub gpu: Gpu,
-    mem_map: Memory,
-    pub stop: bool,
+    pub mem_map: Memory,
 }
 
 impl Gameboy {
@@ -28,12 +28,11 @@ impl Gameboy {
             cpu: Cpu::new(),
             gpu: Gpu::new(),
             mem_map: Memory::new(),
-            stop: false,
         }
     }
 
     pub fn get_screen_buffer(&self) -> Vec<u32> {
-        return self.gpu.get_screen_buffer(&self.mem_map);
+        self.gpu.get_screen_buffer(&self.mem_map)
     }
 
     pub fn load_cartridge(&mut self, path: &str) {
@@ -56,8 +55,6 @@ impl Gameboy {
     }
 
     pub fn power_up(&mut self) {
-        self.cpu.registers.pc = 0x0;
-
         self.cpu.registers.pc = 0x100;
         self.cpu.registers.f = FRegister::from(0xB0);
         self.cpu.registers.a = 0x1;
@@ -88,6 +85,7 @@ impl Gameboy {
         if self.mem_map.iflag.vblank && self.mem_map.ei.vblank {
             println!("VBlank Interrupt");
             int_address = 0x40;
+            self.mem_map.halted = false;
         }
 
         self.clear_interrupts();
@@ -101,16 +99,23 @@ impl Gameboy {
 
     pub fn cycle(&mut self, delta: u64) {
         let fps_interval: f64 = 1f64 / (60f64 + (delta as f64 / 100f64)) as f64; // Sleep time in s
-        let gb_freq = 4.194304 * 1_000_000.0 as f64; // in Hz
+        let gb_freq = 4.194304 * 1_000_000.0; // in Hz
         let clk_per_frame = (gb_freq as f64) * fps_interval as f64;
         let mut spent_cycles: usize = 0;
 
-        while !self.stop && ((spent_cycles as f64) < clk_per_frame) {
+        while (spent_cycles as f64) < clk_per_frame {
+            let mut cpu_cycles: usize = 0;
+
             self.check_interrupts();
-
-            let cpu_cycles: usize = self.cpu.cycle(&mut self.mem_map);
-
-            self.gpu.cycle(&mut self.mem_map, cpu_cycles);
+            if !self.mem_map.halted && !self.mem_map.stopped {
+                cpu_cycles = self.cpu.cycle(&mut self.mem_map);
+            }
+            if !self.mem_map.stopped {
+                self.gpu.cycle(&mut self.mem_map, cpu_cycles);
+            }
+            if self.mem_map.halted || self.mem_map.stopped {
+                return;
+            }
             spent_cycles += cpu_cycles;
         }
     }

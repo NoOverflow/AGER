@@ -70,10 +70,8 @@ impl MBC1 {
         if buffer.len() > 0x20000 {
             panic!("Got too much data for a MBC of type 1.");
         }
-        for i in 0..buffer.len() {
-            mbc.rom[i] = buffer[i];
-        }
-        return mbc;
+        mbc.rom[..buffer.len()].copy_from_slice(&buffer[..]);
+        mbc
     }
 
     fn get_bank_index(&self) -> u8 {

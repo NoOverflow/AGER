@@ -3,6 +3,8 @@ use super::gpu::Stat;
 use super::mbc::mbc0::MBC0;
 use super::mbc::MemoryBankController;
 use std::ops::Range;
+use std::sync::Arc;
+use std::sync::Mutex;
 
 #[derive(Copy, Clone)]
 pub struct Ei {
@@ -44,7 +46,7 @@ impl From<Ei> for u8 {
         if item.vblank {
             ret |= 1;
         }
-        return ret;
+        ret
     }
 }
 
@@ -80,7 +82,7 @@ impl From<Joypad> for u8 {
         if item.p10_in {
             ret |= 1;
         }
-        return ret;
+        ret
     }
 }
 
@@ -110,7 +112,7 @@ pub struct Memory {
 
     // Memory
     boot: &'static [u8; 256],
-    pub rom: Box<dyn MemoryBankController>,
+    pub rom: Box<dyn MemoryBankController + Send>,
     vram: [u8; 0x2000],
     hram: [u8; 0x7F],
     wram: [u8; 0x2000],
@@ -136,6 +138,9 @@ pub struct Memory {
     //   Serial
     pub sc: u8,
     pub sb: u8,
+
+    pub halted: bool,
+    pub stopped: bool,
 }
 
 impl Memory {
@@ -186,7 +191,7 @@ impl Memory {
             // Special registers
             boot_rom_disable: 0,
             nr11: 0,
-            ly: 0x0, // TODO: This should be 0 on startup, this is set so that the boot sequence doesn't loop forever
+            ly: 0,
             scy: 0,
             scx: 0,
             jpad: Joypad::from(0xFF),
@@ -198,6 +203,8 @@ impl Memory {
             obp1: 0xFF,
             sc: 0,
             sb: 0,
+            halted: false,
+            stopped: false,
         }
     }
 
