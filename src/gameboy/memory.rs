@@ -3,8 +3,6 @@ use super::gpu::Stat;
 use super::mbc::mbc0::MBC0;
 use super::mbc::MemoryBankController;
 use std::ops::Range;
-use std::sync::Arc;
-use std::sync::Mutex;
 
 #[derive(Copy, Clone)]
 pub struct Ei {

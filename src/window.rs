@@ -3,11 +3,10 @@ use gio::prelude::*;
 use glium::backend::{Context, Facade};
 use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter};
 use glium::{implement_vertex, uniform, Frame, Program, Surface, VertexBuffer};
-use gtk::builders::{ColumnViewBuilder, PanedBuilder, ScrolledWindowBuilder, TextViewBuilder};
-use gtk::ffi::{GtkTextBuffer, GtkTextView};
+use gtk::builders::{PanedBuilder, ScrolledWindowBuilder, TextViewBuilder};
 use gtk::gdk::GLContext;
 use gtk::glib::clone;
-use gtk::{glib, ColumnViewColumn, Paned, ScrolledWindow, TextMark, TextView};
+use gtk::{glib, Paned, ScrolledWindow, TextMark, TextView};
 use gtk::{prelude::*, Inhibit};
 use gtk::{ApplicationWindow, GLArea};
 use gtk4 as gtk;
@@ -149,7 +148,7 @@ impl Window {
         gtk::Inhibit(true)
     }
 
-    fn debugger_draw(gb: Arc<Mutex<Gameboy>>, text_view: &TextView, text_mark_end: &TextMark) {
+    fn debugger_draw(gb: Arc<Mutex<Gameboy>>, text_view: &TextView, _text_mark_end: &TextMark) {
         let gb_ref = gb.lock().unwrap();
         let debug_text = format!("{:x?}: {:x?}                            A:{:x?} F:{:x?} B:{:x?} C:{:x?} D:{:x?} E:{:x?} H:{:x?} L:{:x?} LY:{:x?} SP:{:x?}",
                 gb_ref.cpu.registers.pc - 1,

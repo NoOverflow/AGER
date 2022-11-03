@@ -3,7 +3,6 @@ mod window;
 
 use gameboy::Gameboy;
 use spin_sleep::LoopHelper;
-use std::borrow::Borrow;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -26,7 +25,7 @@ fn clock_loop(gb: Arc<Mutex<Gameboy>>, tx: Sender<Vec<u32>>) {
         let delta = loop_helper.loop_start();
 
         gb.lock().unwrap().cycle(delta.as_secs());
-        if let Some(fps) = loop_helper.report_rate() {
+        if let Some(_fps) = loop_helper.report_rate() {
             // println!("Current FPS: {}", fps);
         }
         let buffer = gb.lock().unwrap().get_screen_buffer();

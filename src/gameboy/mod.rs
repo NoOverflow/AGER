@@ -14,7 +14,6 @@ use memory::Memory;
 use registers::FRegister;
 use std::fs::File;
 use std::io::prelude::*;
-use std::sync::{Arc, Mutex};
 
 pub struct Gameboy {
     pub cpu: Cpu,
