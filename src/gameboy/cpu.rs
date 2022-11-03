@@ -59,8 +59,114 @@ impl Cpu {
 
     fn call_extended(&mut self, mem: &mut Memory, op_code: u8) -> u8 {
         match op_code {
+            0x0 => {
+                Instructions::rlc(&mut self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x1 => {
+                Instructions::rlc(&mut self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x2 => {
+                Instructions::rlc(&mut self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x3 => {
+                Instructions::rlc(&mut self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x4 => {
+                Instructions::rlc(&mut self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x5 => {
+                Instructions::rlc(&mut self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x6 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                // TODO: Check
+                Instructions::rlc(&mut v, &mut self.registers.f);
+                mem.write_u8(v, address as usize);
+                16
+            }
+            0x7 => {
+                Instructions::rlc(&mut self.registers.a, &mut self.registers.f);
+                8
+            }
+            0x8 => {
+                Instructions::rrc(&mut self.registers.b, &mut self.registers.f, true);
+                8
+            }
+            0x9 => {
+                Instructions::rrc(&mut self.registers.c, &mut self.registers.f, true);
+                8
+            }
+            0xA => {
+                Instructions::rrc(&mut self.registers.d, &mut self.registers.f, true);
+                8
+            }
+            0xB => {
+                Instructions::rrc(&mut self.registers.e, &mut self.registers.f, true);
+                8
+            }
+            0xC => {
+                Instructions::rrc(&mut self.registers.h, &mut self.registers.f, true);
+                8
+            }
+            0xD => {
+                Instructions::rrc(&mut self.registers.l, &mut self.registers.f, true);
+                8
+            }
+            0xE => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                // TODO: Check
+                Instructions::rrc(&mut v, &mut self.registers.f, true);
+                mem.write_u8(v, address as usize);
+                16
+            }
+            0xF => {
+                Instructions::rrc(&mut self.registers.a, &mut self.registers.f, true);
+                8
+            }
+            0x10 => {
+                Instructions::rl(&mut self.registers.b, &mut self.registers.f);
+                8
+            }
             0x11 => {
                 Instructions::rl(&mut self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x12 => {
+                Instructions::rl(&mut self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x13 => {
+                Instructions::rl(&mut self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x14 => {
+                Instructions::rl(&mut self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x15 => {
+                Instructions::rl(&mut self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x16 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::rl(&mut v, &mut self.registers.f);
+                mem.write_u8(v, address as usize);
+                8
+            }
+            0x17 => {
+                Instructions::rl(&mut self.registers.a, &mut self.registers.f);
                 8
             }
             0x18 => {
@@ -97,6 +203,77 @@ impl Cpu {
             }
             0x1F => {
                 Instructions::rr(&mut self.registers.a, &mut self.registers.f);
+                8
+            }
+            0x20 => {
+                Instructions::sla(&mut self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x21 => {
+                Instructions::sla(&mut self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x22 => {
+                Instructions::sla(&mut self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x23 => {
+                Instructions::sla(&mut self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x24 => {
+                Instructions::sla(&mut self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x25 => {
+                Instructions::sla(&mut self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x26 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::sla(&mut v, &mut self.registers.f);
+                mem.write_u8(v, address as usize);
+                16
+            }
+            0x27 => {
+                Instructions::sla(&mut self.registers.a, &mut self.registers.f);
+                8
+            }
+            0x28 => {
+                Instructions::sra(&mut self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x29 => {
+                Instructions::sra(&mut self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x2A => {
+                Instructions::sra(&mut self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x2B => {
+                Instructions::sra(&mut self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x2C => {
+                Instructions::sra(&mut self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x2D => {
+                Instructions::sra(&mut self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x2E => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::sra(&mut v, &mut self.registers.f);
+                8
+            }
+            0x2F => {
+                Instructions::sra(&mut self.registers.a, &mut self.registers.f);
                 8
             }
             0x30 => {
@@ -496,6 +673,7 @@ impl Cpu {
             }
             0x7 => {
                 Instructions::rlc(&mut self.registers.a, &mut self.registers.f);
+                self.registers.f.zero = false;
                 4
             }
             0x8 => {
@@ -543,7 +721,8 @@ impl Cpu {
                 8
             }
             0xF => {
-                Instructions::rrc(&mut self.registers.a, &mut self.registers.f);
+                Instructions::rrc(&mut self.registers.a, &mut self.registers.f, true);
+                self.registers.f.zero = false;
                 4
             }
             0x10 => {
@@ -584,6 +763,7 @@ impl Cpu {
             }
             0x17 => {
                 Instructions::rl(&mut self.registers.a, &mut self.registers.f);
+                self.registers.f.zero = false;
                 4
             }
             0x18 => {
@@ -843,6 +1023,12 @@ impl Cpu {
 
                 Instructions::ld_n(&mut self.registers.a, v);
                 8
+            }
+            0x3F => {
+                self.registers.f.carry = !self.registers.f.carry;
+                self.registers.f.substract = false;
+                self.registers.f.half_carry = false;
+                4
             }
             0x40 => {
                 let v: u8 = self.registers.b;
@@ -1326,6 +1512,43 @@ impl Cpu {
                 let v: u8 = self.registers.a;
 
                 Instructions::sub(&mut self.registers.a, v, &mut self.registers.f);
+                4
+            }
+            0x98 => {
+                Instructions::sbc(&mut self.registers.a, self.registers.b, &mut self.registers.f);
+                4
+            }
+            0x99 => {
+                Instructions::sbc(&mut self.registers.a, self.registers.c, &mut self.registers.f);
+                4
+            }
+            0x9A => {
+                Instructions::sbc(&mut self.registers.a, self.registers.d, &mut self.registers.f);
+                4
+            }
+            0x9B => {
+                Instructions::sbc(&mut self.registers.a, self.registers.e, &mut self.registers.f);
+                4
+            }
+            0x9C => {
+                Instructions::sbc(&mut self.registers.a, self.registers.h, &mut self.registers.f);
+                4
+            }
+            0x9D => {
+                Instructions::sbc(&mut self.registers.a, self.registers.l, &mut self.registers.f);
+                4
+            }
+            0x9E => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::sbc(&mut self.registers.a, v, &mut self.registers.f);
+                8
+            }
+            0x9F => {
+                let a = self.registers.a;
+
+                Instructions::sbc(&mut self.registers.a, a, &mut self.registers.f);
                 4
             }
             0xA0 => {
@@ -2007,10 +2230,10 @@ impl Instructions {
         f_reg.carry = carry;
     }
 
-    pub fn rrc(reg: &mut u8, f_reg: &mut FRegister) {
+    pub fn rrc(reg: &mut u8, f_reg: &mut FRegister, with_carry: bool) {
         let carry: bool = *reg & 0x1 == 0x1;
 
-        *reg = (*reg >> 1) | (if carry { 0x80 } else { 0 });
+        *reg = (*reg >> 1) | (if carry && with_carry { 0x80 } else { 0 });
         f_reg.zero = *reg == 0;
         f_reg.substract = false;
         f_reg.half_carry = false;
@@ -2066,6 +2289,23 @@ impl Instructions {
         f_reg.carry = (*a_reg as u16) < (v as u16) + (carry as u16);
         f_reg.half_carry = (*a_reg & 0xF) < ((v & 0xF) + carry);
         *a_reg = result;
+    }
+
+    pub fn sla(a_reg: &mut u8, f_reg: &mut FRegister) {
+        f_reg.substract = false;
+        f_reg.half_carry = false;
+        f_reg.carry = *a_reg & (1 << 7) != 0;
+        *a_reg <<= 1;
+        f_reg.zero = *a_reg == 0;
+    }
+
+    pub fn sra(a_reg: &mut u8, f_reg: &mut FRegister) {
+        f_reg.substract = false;
+        f_reg.half_carry = false;
+        f_reg.carry = *a_reg & 1 != 0;
+        // f_reg.carry = false;
+        *a_reg = *a_reg >> 1 | *a_reg & 0x80;
+        f_reg.zero = *a_reg == 0;
     }
 
     // TODO: Check HC and C flags
