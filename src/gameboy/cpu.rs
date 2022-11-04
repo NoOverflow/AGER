@@ -270,7 +270,8 @@ impl Cpu {
                 let mut v: u8 = mem.read_u8(address as usize);
 
                 Instructions::sra(&mut v, &mut self.registers.f);
-                8
+                mem.write_u8(v, address as usize);
+                16
             }
             0x2F => {
                 Instructions::sra(&mut self.registers.a, &mut self.registers.f);
@@ -299,6 +300,14 @@ impl Cpu {
             0x35 => {
                 Instructions::swap(&mut self.registers.l, &mut self.registers.f);
                 8
+            }
+            0x36 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::swap(&mut v, &mut self.registers.f);
+                mem.write_u8(v, address as usize);
+                16
             }
             0x37 => {
                 Instructions::swap(&mut self.registers.a, &mut self.registers.f);
@@ -340,8 +349,277 @@ impl Cpu {
                 Instructions::srl(&mut self.registers.a, &mut self.registers.f);
                 8
             }
+            0x40 => {
+                Instructions::bit(0, self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x41 => {
+                Instructions::bit(0, self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x42 => {
+                Instructions::bit(0, self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x43 => {
+                Instructions::bit(0, self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x44 => {
+                Instructions::bit(0, self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x45 => {
+                Instructions::bit(0, self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x46 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                Instructions::bit(0, v, &mut self.registers.f);
+                16
+            }
+            0x47 => {
+                Instructions::bit(0, self.registers.a, &mut self.registers.f);
+                8
+            }
+            0x48 => {
+                Instructions::bit(1, self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x49 => {
+                Instructions::bit(1, self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x4A => {
+                Instructions::bit(1, self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x4B => {
+                Instructions::bit(1, self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x4C => {
+                Instructions::bit(1, self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x4D => {
+                Instructions::bit(1, self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x4E => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+                Instructions::bit(1, v, &mut self.registers.f);
+                16
+            }
+            0x4F => {
+                Instructions::bit(1, self.registers.a, &mut self.registers.f);
+                8
+            }
+            0x50 => {
+                Instructions::bit(2, self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x51 => {
+                Instructions::bit(2, self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x52 => {
+                Instructions::bit(2, self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x53 => {
+                Instructions::bit(2, self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x54 => {
+                Instructions::bit(2, self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x55 => {
+                Instructions::bit(2, self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x56 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+                Instructions::bit(2, v, &mut self.registers.f);
+                16
+            }
+            0x57 => {
+                Instructions::bit(2, self.registers.a, &mut self.registers.f);
+                8
+            }
+            0x58 => {
+                Instructions::bit(3, self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x59 => {
+                Instructions::bit(3, self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x5A => {
+                Instructions::bit(3, self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x5B => {
+                Instructions::bit(3, self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x5C => {
+                Instructions::bit(3, self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x5D => {
+                Instructions::bit(3, self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x5E => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+                Instructions::bit(3, v, &mut self.registers.f);
+                16
+            }
+            0x5F => {
+                Instructions::bit(3, self.registers.a, &mut self.registers.f);
+                8
+            }
+            0x60 => {
+                Instructions::bit(4, self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x61 => {
+                Instructions::bit(4, self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x62 => {
+                Instructions::bit(4, self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x63 => {
+                Instructions::bit(4, self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x64 => {
+                Instructions::bit(4, self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x65 => {
+                Instructions::bit(4, self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x66 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+                Instructions::bit(4, v, &mut self.registers.f);
+                16
+            }
+            0x67 => {
+                Instructions::bit(4, self.registers.a, &mut self.registers.f);
+                8
+            }
+            0x68 => {
+                Instructions::bit(5, self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x69 => {
+                Instructions::bit(5, self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x6A => {
+                Instructions::bit(5, self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x6B => {
+                Instructions::bit(5, self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x6C => {
+                Instructions::bit(5, self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x6D => {
+                Instructions::bit(5, self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x6E => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+                Instructions::bit(5, v, &mut self.registers.f);
+                16
+            }
+            0x6F => {
+                Instructions::bit(5, self.registers.a, &mut self.registers.f);
+                8
+            }
+            0x70 => {
+                Instructions::bit(6, self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x71 => {
+                Instructions::bit(6, self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x72 => {
+                Instructions::bit(6, self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x73 => {
+                Instructions::bit(6, self.registers.e, &mut self.registers.f);
+                8
+            }
+            0x74 => {
+                Instructions::bit(6, self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x75 => {
+                Instructions::bit(6, self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x76 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+                Instructions::bit(6, v, &mut self.registers.f);
+                16
+            }
+            0x77 => {
+                Instructions::bit(6, self.registers.a, &mut self.registers.f);
+                8
+            }
+            0x78 => {
+                Instructions::bit(7, self.registers.b, &mut self.registers.f);
+                8
+            }
+            0x79 => {
+                Instructions::bit(7, self.registers.c, &mut self.registers.f);
+                8
+            }
+            0x7A => {
+                Instructions::bit(7, self.registers.d, &mut self.registers.f);
+                8
+            }
+            0x7B => {
+                Instructions::bit(7, self.registers.e, &mut self.registers.f);
+                8
+            }
             0x7C => {
                 Instructions::bit(7, self.registers.h, &mut self.registers.f);
+                8
+            }
+            0x7D => {
+                Instructions::bit(7, self.registers.l, &mut self.registers.f);
+                8
+            }
+            0x7E => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+                Instructions::bit(7, v, &mut self.registers.f);
+                16
+            }
+            0x7F => {
+                Instructions::bit(7, self.registers.a, &mut self.registers.f);
                 8
             }
             0x80 => {
@@ -630,6 +908,294 @@ impl Cpu {
             }
             0xBF => {
                 Instructions::res(&mut self.registers.a, 7);
+                8
+            }
+            0xC0 => {
+                Instructions::set(0, &mut self.registers.b);
+                8
+            }
+            0xC1 => {
+                Instructions::set(0, &mut self.registers.c);
+                8
+            }
+            0xC2 => {
+                Instructions::set(0, &mut self.registers.d);
+                8
+            }
+            0xC3 => {
+                Instructions::set(0, &mut self.registers.e);
+                8
+            }
+            0xC4 => {
+                Instructions::set(0, &mut self.registers.h);
+                8
+            }
+            0xC5 => {
+                Instructions::set(0, &mut self.registers.l);
+                8
+            }
+            0xC6 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::set(0, &mut v);
+                mem.write_u8(v, address as usize);
+                16
+            }
+            0xC7 => {
+                Instructions::set(0, &mut self.registers.a);
+                8
+            }
+            0xC8 => {
+                Instructions::set(1, &mut self.registers.b);
+                8
+            }
+            0xC9 => {
+                Instructions::set(1, &mut self.registers.c);
+                8
+            }
+            0xCA => {
+                Instructions::set(1, &mut self.registers.d);
+                8
+            }
+            0xCB => {
+                Instructions::set(1, &mut self.registers.e);
+                8
+            }
+            0xCC => {
+                Instructions::set(1, &mut self.registers.h);
+                8
+            }
+            0xCD => {
+                Instructions::set(1, &mut self.registers.l);
+                8
+            }
+            0xCE => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::set(1, &mut v);
+                mem.write_u8(v, address as usize);
+                16
+            }
+            0xCF => {
+                Instructions::set(1, &mut self.registers.a);
+                8
+            }
+            0xD0 => {
+                Instructions::set(2, &mut self.registers.b);
+                8
+            }
+            0xD1 => {
+                Instructions::set(2, &mut self.registers.c);
+                8
+            }
+            0xD2 => {
+                Instructions::set(2, &mut self.registers.d);
+                8
+            }
+            0xD3 => {
+                Instructions::set(2, &mut self.registers.e);
+                8
+            }
+            0xD4 => {
+                Instructions::set(2, &mut self.registers.h);
+                8
+            }
+            0xD5 => {
+                Instructions::set(2, &mut self.registers.l);
+                8
+            }
+            0xD6 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::set(2, &mut v);
+                mem.write_u8(v, address as usize);
+                16
+            }
+            0xD7 => {
+                Instructions::set(2, &mut self.registers.a);
+                8
+            }
+            0xD8 => {
+                Instructions::set(3, &mut self.registers.b);
+                8
+            }
+            0xD9 => {
+                Instructions::set(3, &mut self.registers.c);
+                8
+            }
+            0xDA => {
+                Instructions::set(3, &mut self.registers.d);
+                8
+            }
+            0xDB => {
+                Instructions::set(3, &mut self.registers.e);
+                8
+            }
+            0xDC => {
+                Instructions::set(3, &mut self.registers.h);
+                8
+            }
+            0xDD => {
+                Instructions::set(3, &mut self.registers.l);
+                8
+            }
+            0xDE => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::set(3, &mut v);
+                mem.write_u8(v, address as usize);
+                16
+            }
+            0xDF => {
+                Instructions::set(3, &mut self.registers.a);
+                8
+            }
+            0xE0 => {
+                Instructions::set(4, &mut self.registers.b);
+                8
+            }
+            0xE1 => {
+                Instructions::set(4, &mut self.registers.c);
+                8
+            }
+            0xE2 => {
+                Instructions::set(4, &mut self.registers.d);
+                8
+            }
+            0xE3 => {
+                Instructions::set(4, &mut self.registers.e);
+                8
+            }
+            0xE4 => {
+                Instructions::set(4, &mut self.registers.h);
+                8
+            }
+            0xE5 => {
+                Instructions::set(4, &mut self.registers.l);
+                8
+            }
+            0xE6 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::set(4, &mut v);
+                mem.write_u8(v, address as usize);
+                16
+            }
+            0xE7 => {
+                Instructions::set(4, &mut self.registers.a);
+                8
+            }
+            0xE8 => {
+                Instructions::set(5, &mut self.registers.b);
+                8
+            }
+            0xE9 => {
+                Instructions::set(5, &mut self.registers.c);
+                8
+            }
+            0xEA => {
+                Instructions::set(5, &mut self.registers.d);
+                8
+            }
+            0xEB => {
+                Instructions::set(5, &mut self.registers.e);
+                8
+            }
+            0xEC => {
+                Instructions::set(5, &mut self.registers.h);
+                8
+            }
+            0xED => {
+                Instructions::set(5, &mut self.registers.l);
+                8
+            }
+            0xEE => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::set(5, &mut v);
+                mem.write_u8(v, address as usize);
+                16
+            }
+            0xEF => {
+                Instructions::set(5, &mut self.registers.a);
+                8
+            }
+            0xF0 => {
+                Instructions::set(6, &mut self.registers.b);
+                8
+            }
+            0xF1 => {
+                Instructions::set(6, &mut self.registers.c);
+                8
+            }
+            0xF2 => {
+                Instructions::set(6, &mut self.registers.d);
+                8
+            }
+            0xF3 => {
+                Instructions::set(6, &mut self.registers.e);
+                8
+            }
+            0xF4 => {
+                Instructions::set(6, &mut self.registers.h);
+                8
+            }
+            0xF5 => {
+                Instructions::set(6, &mut self.registers.l);
+                8
+            }
+            0xF6 => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::set(6, &mut v);
+                mem.write_u8(v, address as usize);
+                16
+            }
+            0xF7 => {
+                Instructions::set(6, &mut self.registers.a);
+                8
+            }
+            0xF8 => {
+                Instructions::set(7, &mut self.registers.b);
+                8
+            }
+            0xF9 => {
+                Instructions::set(7, &mut self.registers.c);
+                8
+            }
+            0xFA => {
+                Instructions::set(7, &mut self.registers.d);
+                8
+            }
+            0xFB => {
+                Instructions::set(7, &mut self.registers.e);
+                8
+            }
+            0xFC => {
+                Instructions::set(7, &mut self.registers.h);
+                8
+            }
+            0xFD => {
+                Instructions::set(7, &mut self.registers.l);
+                8
+            }
+            0xFE => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let mut v: u8 = mem.read_u8(address as usize);
+
+                Instructions::set(7, &mut v);
+                mem.write_u8(v, address as usize);
+                16
+            }
+            0xFF => {
+                Instructions::set(7, &mut self.registers.a);
                 8
             }
             _ => panic!("{:#02x} is not an implemented extended opcode.", op_code),
@@ -1004,6 +1570,14 @@ impl Cpu {
                     self.registers.sp,
                     &mut self.registers.f,
                 );
+                8
+            }
+            0x3A => {
+                let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
+                let v: u8 = mem.read_u8(address as usize);
+
+                self.registers.a = v;
+                Instructions::dec_nn(&mut self.registers.h, &mut self.registers.l);
                 8
             }
             0x3B => {
@@ -1515,27 +2089,51 @@ impl Cpu {
                 4
             }
             0x98 => {
-                Instructions::sbc(&mut self.registers.a, self.registers.b, &mut self.registers.f);
+                Instructions::sbc(
+                    &mut self.registers.a,
+                    self.registers.b,
+                    &mut self.registers.f,
+                );
                 4
             }
             0x99 => {
-                Instructions::sbc(&mut self.registers.a, self.registers.c, &mut self.registers.f);
+                Instructions::sbc(
+                    &mut self.registers.a,
+                    self.registers.c,
+                    &mut self.registers.f,
+                );
                 4
             }
             0x9A => {
-                Instructions::sbc(&mut self.registers.a, self.registers.d, &mut self.registers.f);
+                Instructions::sbc(
+                    &mut self.registers.a,
+                    self.registers.d,
+                    &mut self.registers.f,
+                );
                 4
             }
             0x9B => {
-                Instructions::sbc(&mut self.registers.a, self.registers.e, &mut self.registers.f);
+                Instructions::sbc(
+                    &mut self.registers.a,
+                    self.registers.e,
+                    &mut self.registers.f,
+                );
                 4
             }
             0x9C => {
-                Instructions::sbc(&mut self.registers.a, self.registers.h, &mut self.registers.f);
+                Instructions::sbc(
+                    &mut self.registers.a,
+                    self.registers.h,
+                    &mut self.registers.f,
+                );
                 4
             }
             0x9D => {
-                Instructions::sbc(&mut self.registers.a, self.registers.l, &mut self.registers.f);
+                Instructions::sbc(
+                    &mut self.registers.a,
+                    self.registers.l,
+                    &mut self.registers.f,
+                );
                 4
             }
             0x9E => {
@@ -2189,6 +2787,10 @@ impl Instructions {
         f_reg.zero = reg & (1 << (bit as u32)) == 0;
         f_reg.substract = false;
         f_reg.half_carry = true;
+    }
+
+    pub fn set(bit: u8, reg: &mut u8) {
+        *reg |= 1 << bit;
     }
 
     pub fn jr_n(offset: i8, pc: &mut u16) {
