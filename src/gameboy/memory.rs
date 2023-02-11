@@ -108,6 +108,12 @@ pub struct Memory {
     pub io_address_bound: Range<usize>,
     pub hram_address_bound: Range<usize>,
 
+    // Timers
+    pub div: usize,
+    pub tima: usize,
+    pub tma: u8,
+    pub tac: u8,
+
     // Memory
     boot: &'static [u8; 256],
     pub rom: Box<dyn MemoryBankController + Send>,
@@ -178,6 +184,12 @@ impl Memory {
                 end: 0xFFFF,
             },
 
+            // Timers
+            div: 0,
+            tima: 0,
+            tma: 0,
+            tac: 0,
+
             // Memory
             boot: include_bytes!("../../res/boot.bin"),
             rom: Box::new(MBC0::new([].to_vec())), // By default we "load" a MBC0
@@ -213,6 +225,10 @@ impl Memory {
                 print!("{}", self.sb as char);
             } // TODO Implement SB
             0xFF02 => self.sc = value, // TODO Implement SC
+            0xFF04 => self.div = 0,
+            0xFF05 => self.tima = value as usize,
+            0xFF06 => self.tma = value,
+            0xFF07 => self.tac = value,
             0xFF11 => self.nr11 = value,
             0xFF12 => (), // TODO Implement NR12
             0xFF13 => (), // TODO Implement NR13
@@ -222,34 +238,6 @@ impl Memory {
             0xFF26 => (), // TODO Implement NR52
             0xFF40 => {
                 self.lcdc = Lcdc::from(value);
-
-                /*println!(
-                    "- LCD Op {} v:{}",
-                    if self.lcdc.lcd_control_op {
-                        "Enabled"
-                    } else {
-                        "Disabled"
-                    },
-                    value
-                );
-                if self.lcdc.bg_win_display {
-                    println!(
-                        "- BG+Win {}",
-                        if self.lcdc.bg_win_display {
-                            "Enabled"
-                        } else {
-                            "Disabled"
-                        }
-                    );
-                    println!(
-                        "- Win {}",
-                        if self.lcdc.window_display {
-                            "Enabled"
-                        } else {
-                            "Disabled"
-                        }
-                    );
-                }*/
             }
             0xFF41 => self.stat = Stat::from(value),
             0xFF42 => self.scy = value,
@@ -270,6 +258,10 @@ impl Memory {
             0xFF00 => u8::from(self.jpad),
             0xFF01 => self.sb, // TODO Implement SB
             0xFF02 => self.sc, // TODO Implement SC
+            0xFF04 => self.div as u8,
+            0xFF05 => self.tima as u8,
+            0xFF06 => self.tma,
+            0xFF07 => self.tac,
             0xFF11 => self.nr11,
             0xFF12 => 0, // TODO Implement NR12
             0xFF13 => 0, // TODO Implement NR13

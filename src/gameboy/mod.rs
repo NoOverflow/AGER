@@ -5,6 +5,7 @@ pub mod gpu;
 pub mod mbc;
 pub mod memory;
 pub mod registers;
+pub mod timer;
 
 use cpu::Cpu;
 use gpu::Gpu;
@@ -14,11 +15,13 @@ use memory::Memory;
 use registers::FRegister;
 use std::fs::File;
 use std::io::prelude::*;
+use timer::Timer;
 
 pub struct Gameboy {
     pub cpu: Cpu,
     pub gpu: Gpu,
     pub mem_map: Memory,
+    pub timer: Timer,
 }
 
 impl Gameboy {
@@ -27,6 +30,7 @@ impl Gameboy {
             cpu: Cpu::new(),
             gpu: Gpu::new(),
             mem_map: Memory::new(),
+            timer: Timer::new(),
         }
     }
 
@@ -78,7 +82,19 @@ impl Gameboy {
 
         if !self.cpu.ime {
             self.clear_interrupts();
-            return;
+            return 0;
+        }
+
+        if self.mem_map.iflag.timer_overflow && self.mem_map.ei.timer_overflow {
+            println!("Timer interrupt.");
+            int_address = 0x50;
+            self.mem_map.iflag.timer_overflow = false;
+        }
+
+        if self.mem_map.iflag.lcdc && self.mem_map.ei.lcdc {
+            println!("LCDC Interrupt");
+            int_address = 0x48;
+            self.mem_map.iflag.lcdc = false;
         }
 
         if self.mem_map.iflag.vblank && self.mem_map.ei.vblank {
@@ -94,6 +110,13 @@ impl Gameboy {
         self.cpu.ime = false;
         self.cpu.push_word(&mut self.mem_map, self.cpu.registers.pc);
         self.cpu.registers.pc = int_address;
+        10
+    }
+
+    pub fn timer_cycle(&mut self, cycles: usize) {
+        if self.timer.increment_tima(&mut self.mem_map, cycles) {
+            self.mem_map.iflag.timer_overflow = true;
+        }
     }
 
     pub fn cycle(&mut self, delta: u64) {
@@ -105,15 +128,26 @@ impl Gameboy {
         while (spent_cycles as f64) < clk_per_frame {
             let mut cpu_cycles: usize = 0;
 
-            self.check_interrupts();
-            if !self.mem_map.halted && !self.mem_map.stopped {
-                cpu_cycles = self.cpu.cycle(&mut self.mem_map);
+            // Delay interrupt master enable by one instruction
+            if self.cpu.ime_next {
+                self.cpu.ime = true;
+                self.cpu.ime_next = false;
             }
+            if self.cpu.imd_next {
+                self.cpu.ime = false;
+                self.cpu.imd_next = false;
+            }
+            cpu_cycles += self.check_interrupts();
+            if !self.mem_map.halted {
+                cpu_cycles += self.cpu.cycle(&mut self.mem_map);
+                self.timer.increment_div(&mut self.mem_map, cpu_cycles);
+            } else {
+                cpu_cycles += 4;
+            }
+
+            self.timer_cycle(cpu_cycles);
             if !self.mem_map.stopped {
                 self.gpu.cycle(&mut self.mem_map, cpu_cycles);
-            }
-            if self.mem_map.halted || self.mem_map.stopped {
-                return;
             }
             spent_cycles += cpu_cycles;
         }
