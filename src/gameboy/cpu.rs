@@ -6,6 +6,8 @@ use super::registers::Registers;
 pub struct Cpu {
     pub registers: Registers,
     pub ime: bool,
+    pub ime_next: bool,
+    pub imd_next: bool,
 }
 
 impl Cpu {
@@ -13,6 +15,8 @@ impl Cpu {
         Cpu {
             registers: Registers::new(),
             ime: true,
+            ime_next: false,
+            imd_next: false,
         }
     }
 
@@ -1292,7 +1296,9 @@ impl Cpu {
                 4
             }
             0x10 => {
-                mem.halted = true;
+                mem.stopped = true;
+                mem.div = 0x0;
+                println!("CPU Stopped!");
                 4
             }
             0x11 => {
@@ -1861,6 +1867,11 @@ impl Cpu {
 
                 mem.write_u8(self.registers.l, address as usize);
                 8
+            }
+            0x76 => {
+                mem.halted = true;
+                println!("CPU Halted!");
+                4
             }
             0x77 => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
@@ -2574,7 +2585,7 @@ impl Cpu {
                 12
             }
             0xE2 => {
-                mem.write_u8(self.registers.c, 0xFF00 | (self.registers.c as usize));
+                mem.write_u8(self.registers.a, 0xFF00 | (self.registers.c as usize));
                 8
             }
             0xE5 => {
@@ -2644,8 +2655,15 @@ impl Cpu {
                 self.registers.f = FRegister::from(u8s.1);
                 12
             }
+            0xF2 => {
+                let address: u16 = 0xFF00 | self.registers.c as u16;
+
+                self.registers.a = mem.read_u8(address as usize);
+                8
+            }
             0xF3 => {
-                self.ime = false;
+                self.imd_next = true;
+                println!("IME disabled on next instruction");
                 4
             }
             0xF5 => {
@@ -2694,7 +2712,8 @@ impl Cpu {
                 16
             }
             0xFB => {
-                self.ime = true;
+                self.ime_next = true;
+                println!("IME enabled on next step");
                 4
             }
             0xFE => {

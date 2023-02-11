@@ -5,15 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(Windows) Lancer",
-            "type": "cppvsdbg",
+            "name": "(gdb) Launch",
+            "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/target/debug/age.exe",
+            "preLaunchTask": "cargo build",
+            "program": "${workspaceFolder}/target/debug/age",
             "args": [],
-            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
-            "console": "externalTerminal"
         }
+
     ]
 }

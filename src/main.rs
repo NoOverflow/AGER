@@ -18,7 +18,7 @@ fn clock_loop(gb: Arc<Mutex<Gameboy>>, tx: Sender<Vec<u32>>) {
 
     gb.lock()
         .unwrap()
-        .load_cartridge("res/test/individual/04-op r,imm.gb");
+        .load_cartridge("res/test/individual/02-interrupts.gb");
     gb.lock().unwrap().power_up();
 
     while !stop {
@@ -53,6 +53,7 @@ fn main() {
     {
         let gb_clone = gb.clone();
         let rx_mutex = Arc::new(Mutex::from(rx));
+
         window::Window::new().init_window(gb_clone, rx_mutex);
     }
 }

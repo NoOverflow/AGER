@@ -68,7 +68,7 @@ impl Gameboy {
         self.cpu.registers.h = 0x01;
         self.cpu.registers.l = 0x4d;
 
-        self.mem_map.boot_rom_disable = 1;
+        self.mem_map.boot_rom_disable = 0;
 
         self.cpu.registers.sp = 0xFFFE;
     }
@@ -77,7 +77,7 @@ impl Gameboy {
         self.mem_map.iflag = memory::Ei::from(0);
     }
 
-    pub fn check_interrupts(&mut self) {
+    pub fn check_interrupts(&mut self) -> usize {
         let mut int_address: u16 = 0;
 
         if !self.cpu.ime {
@@ -100,13 +100,15 @@ impl Gameboy {
         if self.mem_map.iflag.vblank && self.mem_map.ei.vblank {
             println!("VBlank Interrupt");
             int_address = 0x40;
-            self.mem_map.halted = false;
+            self.mem_map.iflag.vblank = false;
         }
 
         self.clear_interrupts();
         if int_address == 0 {
-            return;
+            return 0;
         }
+
+        self.mem_map.halted = false;
         self.cpu.ime = false;
         self.cpu.push_word(&mut self.mem_map, self.cpu.registers.pc);
         self.cpu.registers.pc = int_address;
