@@ -1,10 +1,14 @@
+use ::gdk::EventKey;
 use cgmath::Matrix4;
 use gio::prelude::*;
 use glium::backend::{Context, Facade};
+use glium::glutin::event;
 use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter};
 use glium::{implement_vertex, uniform, Frame, Program, Surface, VertexBuffer};
-use gtk::builders::{PanedBuilder, ScrolledWindowBuilder, TextViewBuilder};
-use gtk::gdk::GLContext;
+use gtk::builders::{
+    EventControllerKeyBuilder, PanedBuilder, ScrolledWindowBuilder, TextViewBuilder,
+};
+use gtk::gdk::{self, GLContext};
 use gtk::glib::clone;
 use gtk::{glib, Paned, ScrolledWindow, TextMark, TextView};
 use gtk::{prelude::*, Inhibit};
@@ -193,8 +197,35 @@ impl Window {
         scroll_window.set_child(Some(&text_view));
         paned.set_start_child(Some(&glarea));
         paned.set_end_child(Some(&scroll_window));
+
+        /*window.connect("key_press_event", false, |values| {
+            // Get the key pressed code from value
+            let keyval = values[1].get::<u32>().unwrap();
+
+            println!("Keyval: {}", keyval);
+            Some(glib::value::Value::from_type(glib::types::Type::BOOL))
+        });*/
+
+        let event_controller = EventControllerKeyBuilder::new().build();
+
+        event_controller.connect_key_pressed(
+            clone!(@strong gb => move |_event_controller, keyval, _keycode, _state| {
+                let mut gb = gb.lock().unwrap();
+
+                match keyval {
+                    gdk::Key::p => {
+                        gb.debugger.state.paused = !gb.debugger.state.paused;
+                        println!("Paused: {}", gb.debugger.state.paused);
+                    },
+                    _ => {}
+                }
+                Inhibit(false)
+            }),
+        );
+        event_controller.set_propagation_phase(gtk::PropagationPhase::Capture);
+        window.add_controller(&event_controller);
         window.set_child(Some(&paned));
-        window.show();
+        window.present();
 
         let facade: gtk4_glium::GtkFacade = gtk4_glium::GtkFacade::from_glarea(&glarea).unwrap();
         let vertex_shader_src = include_str!("../res/shaders/default.vs");

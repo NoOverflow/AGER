@@ -17,11 +17,14 @@ use std::fs::File;
 use std::io::prelude::*;
 use timer::Timer;
 
+use self::debugger::Debugger;
+
 pub struct Gameboy {
     pub cpu: Cpu,
     pub gpu: Gpu,
     pub mem_map: Memory,
     pub timer: Timer,
+    pub debugger: Debugger,
 }
 
 impl Gameboy {
@@ -31,6 +34,7 @@ impl Gameboy {
             gpu: Gpu::new(),
             mem_map: Memory::new(),
             timer: Timer::new(),
+            debugger: Debugger::new(),
         }
     }
 
@@ -67,9 +71,7 @@ impl Gameboy {
         self.cpu.registers.e = 0xd8;
         self.cpu.registers.h = 0x01;
         self.cpu.registers.l = 0x4d;
-
         self.mem_map.boot_rom_disable = 0;
-
         self.cpu.registers.sp = 0xFFFE;
     }
 
@@ -127,7 +129,7 @@ impl Gameboy {
         let clk_per_frame = (gb_freq as f64) * fps_interval as f64;
         let mut spent_cycles: usize = 0;
 
-        while (spent_cycles as f64) < clk_per_frame {
+        while (spent_cycles as f64) < clk_per_frame && !self.debugger.state.paused {
             let mut cpu_cycles: usize = 0;
 
             // Delay interrupt master enable by one instruction

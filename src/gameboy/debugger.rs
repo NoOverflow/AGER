@@ -1,13 +1,23 @@
 use std::collections::HashMap;
 
+pub struct DebuggerState {
+    pub paused: bool,
+    pub step: bool,
+}
+
 pub struct Debugger {
     pub translation_table: HashMap<u8, String>,
     pub translation_table_extended: HashMap<u8, String>,
+    pub state: DebuggerState,
 }
 
 impl Debugger {
     pub fn new() -> Debugger {
         Debugger {
+            state: DebuggerState {
+                paused: false,
+                step: false,
+            },
             translation_table: HashMap::from([
                 (0x0, "NOP".to_string()),
                 (0x1, "LD BC,d16".to_string()),
