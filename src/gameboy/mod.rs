@@ -129,7 +129,9 @@ impl Gameboy {
         let clk_per_frame = (gb_freq as f64) * fps_interval as f64;
         let mut spent_cycles: usize = 0;
 
-        while (spent_cycles as f64) < clk_per_frame && !self.debugger.state.paused {
+        while (spent_cycles as f64) < clk_per_frame
+            && (!self.debugger.state.paused || self.debugger.state.step)
+        {
             let mut cpu_cycles: usize = 0;
 
             // Delay interrupt master enable by one instruction
@@ -153,6 +155,7 @@ impl Gameboy {
             if !self.mem_map.stopped {
                 self.gpu.cycle(&mut self.mem_map, cpu_cycles);
             }
+            self.debugger.state.step = false;
             spent_cycles += cpu_cycles;
         }
     }

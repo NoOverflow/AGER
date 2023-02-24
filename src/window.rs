@@ -154,20 +154,38 @@ impl Window {
 
     fn debugger_draw(gb: Arc<Mutex<Gameboy>>, text_view: &TextView, _text_mark_end: &TextMark) {
         let gb_ref = gb.lock().unwrap();
+        let mut current_instruction = gb_ref.mem_map.read_u8(gb_ref.cpu.registers.pc as usize);
+        let extended_instruction: bool = current_instruction == 0xCB;
+
+        if extended_instruction {
+            current_instruction = gb_ref.mem_map.read_u8(gb_ref.cpu.registers.pc as usize + 1);
+        }
+        let str_instruction = match if extended_instruction {
+            gb_ref
+                .debugger
+                .translation_table_extended
+                .get(&current_instruction)
+        } else {
+            gb_ref.debugger.translation_table.get(&current_instruction)
+        } {
+            Some(instruction) => instruction,
+            None => "Unknown instruction",
+        };
+
         let debug_text = format!("{:x?}: {:x?}                            A:{:x?} F:{:x?} B:{:x?} C:{:x?} D:{:x?} E:{:x?} H:{:x?} L:{:x?} LY:{:x?} SP:{:x?}",
-                gb_ref.cpu.registers.pc - 1,
-                "XX",
-                gb_ref.cpu.registers.a,
-                u8::from(gb_ref.cpu.registers.f),
-                gb_ref.cpu.registers.b,
-                gb_ref.cpu.registers.c,
-                gb_ref.cpu.registers.d,
-                gb_ref.cpu.registers.e,
-                gb_ref.cpu.registers.h,
-                gb_ref.cpu.registers.l,
-                gb_ref.mem_map.ly,
-                gb_ref.cpu.registers.sp
-            );
+            gb_ref.cpu.registers.pc - 1,
+            str_instruction,
+            gb_ref.cpu.registers.a,
+            u8::from(gb_ref.cpu.registers.f),
+            gb_ref.cpu.registers.b,
+            gb_ref.cpu.registers.c,
+            gb_ref.cpu.registers.d,
+            gb_ref.cpu.registers.e,
+            gb_ref.cpu.registers.h,
+            gb_ref.cpu.registers.l,
+            gb_ref.mem_map.ly,
+            gb_ref.cpu.registers.sp
+        );
 
         text_view.buffer().set_text(&debug_text);
     }
@@ -217,6 +235,9 @@ impl Window {
                         gb.debugger.state.paused = !gb.debugger.state.paused;
                         println!("Paused: {}", gb.debugger.state.paused);
                     },
+                    gdk::Key::m => {
+                        gb.debugger.state.step = true;
+                    }
                     _ => {}
                 }
                 Inhibit(false)
