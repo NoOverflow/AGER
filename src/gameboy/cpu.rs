@@ -2536,7 +2536,7 @@ impl Cpu {
                 let address: u16 = self.pop_word(mem);
 
                 self.registers.pc = address;
-                // TODO: Enable interrupts
+                self.ime_next = true;
                 8
             }
             0xDA => {
