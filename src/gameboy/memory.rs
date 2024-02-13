@@ -62,22 +62,24 @@ impl From<Joypad> for u8 {
     fn from(item: Joypad) -> Self {
         let mut ret: u8 = 0;
 
-        if item.select_action {
+        ret |= 1 << 7;
+        ret |= 1 << 6;
+        if !item.select_action {
             ret |= 1 << 5;
         }
-        if item.select_direction {
+        if !item.select_direction {
             ret |= 1 << 4;
         }
-        if item.p13_in {
+        if !item.p13_in {
             ret |= 1 << 3;
         }
-        if item.p12_in {
+        if !item.p12_in {
             ret |= 1 << 2;
         }
-        if item.p11_in {
+        if !item.p11_in {
             ret |= 1 << 1;
         }
-        if item.p10_in {
+        if !item.p10_in {
             ret |= 1;
         }
         ret
@@ -87,12 +89,12 @@ impl From<Joypad> for u8 {
 impl From<u8> for Joypad {
     fn from(item: u8) -> Self {
         Joypad {
-            select_action: item & (1 << 5) != 0,
-            select_direction: item & (1 << 4) != 0,
-            p13_in: item & (1 << 3) != 0,
-            p12_in: item & (1 << 2) != 0,
-            p11_in: item & (1 << 1) != 0,
-            p10_in: item & (1 << 0) != 0,
+            select_action: item & (1 << 5) == 0,
+            select_direction: item & (1 << 4) == 0,
+            p13_in: item & (1 << 3) == 0,
+            p12_in: item & (1 << 2) == 0,
+            p11_in: item & (1 << 1) == 0,
+            p10_in: item & (1 << 0) == 0,
         }
     }
 }
@@ -279,7 +281,10 @@ impl Memory {
             0xFF49 => self.obp1,
             0xFF4D => 0,
 
-            0xFF0F => u8::from(self.iflag),
+            0xFF0F => {
+                println!("Reading IF: {:#02x}", u8::from(self.iflag));
+                u8::from(self.iflag)
+            }
             // This is a special register used by the boot rom
             0xFF50 => self.boot_rom_disable,
             0xFFFF => u8::from(self.ei),

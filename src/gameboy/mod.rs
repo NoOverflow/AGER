@@ -100,11 +100,15 @@ impl Gameboy {
         }
 
         if self.mem_map.iflag.vblank && self.mem_map.ei.vblank {
-            println!("VBlank Interrupt");
+            // println!("VBlank Interrupt");
             int_address = 0x40;
             self.mem_map.iflag.vblank = false;
         }
 
+        if self.mem_map.iflag.hi_lo && self.mem_map.ei.hi_lo {
+            int_address = 0x60;
+            self.mem_map.iflag.hi_lo = false;
+        }
         self.clear_interrupts();
         if int_address == 0 {
             return 0;
