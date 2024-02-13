@@ -1,5 +1,5 @@
 mod gameboy;
-mod window;
+pub mod views;
 
 use gameboy::Gameboy;
 use spin_sleep::LoopHelper;
@@ -9,6 +9,7 @@ use std::sync::mpsc::Sender;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
+use views::logic::game::GameWindow;
 
 fn clock_loop(gb: Arc<Mutex<Gameboy>>, tx: Sender<Vec<u32>>) {
     let mut loop_helper = LoopHelper::builder()
@@ -18,7 +19,7 @@ fn clock_loop(gb: Arc<Mutex<Gameboy>>, tx: Sender<Vec<u32>>) {
 
     gb.lock()
         .unwrap()
-        .load_cartridge("res/test/individual/02-interrupts.gb");
+        .load_cartridge("res/test/licensed/tetris_world_rev_a.gb");
     gb.lock().unwrap().power_up();
 
     while !stop {
@@ -54,6 +55,6 @@ fn main() {
         let gb_clone = gb.clone();
         let rx_mutex = Arc::new(Mutex::from(rx));
 
-        window::Window::new().init_window(gb_clone, rx_mutex);
+        GameWindow::new().init_window(gb_clone, rx_mutex);
     }
 }

@@ -1,16 +1,12 @@
-use ::gdk::EventKey;
 use cgmath::Matrix4;
 use gio::prelude::*;
 use glium::backend::{Context, Facade};
-use glium::glutin::event;
 use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter};
 use glium::{implement_vertex, uniform, Frame, Program, Surface, VertexBuffer};
-use gtk::builders::{
-    EventControllerKeyBuilder, PanedBuilder, ScrolledWindowBuilder, TextViewBuilder,
-};
+use gtk::builders::{EventControllerKeyBuilder, PanedBuilder};
 use gtk::gdk::{self, GLContext};
 use gtk::glib::clone;
-use gtk::{glib, Paned, ScrolledWindow, TextMark, TextView};
+use gtk::{glib, Paned};
 use gtk::{prelude::*, Inhibit};
 use gtk::{ApplicationWindow, GLArea};
 use gtk4 as gtk;
@@ -21,12 +17,13 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crate::gameboy::Gameboy;
+use crate::views::logic::debugger::DebuggerWindow;
 
 const SCALE: u32 = 4;
 const WINDOW_WIDTH: u32 = 160; // 160 * SCALE;
 const WINDOW_HEIGHT: u32 = 144; // 144 * SCALE;
 
-pub struct Window {}
+pub struct GameWindow {}
 
 #[derive(Clone)]
 pub struct RenderContext {
@@ -40,9 +37,13 @@ struct Vertex {
     position: [f32; 2],
 }
 
-impl Window {
+impl GameWindow {
     pub fn new() -> Self {
-        Window {}
+        GameWindow {}
+    }
+
+    fn create_sub_windows(app: &gtk::Application, gb: Arc<Mutex<Gameboy>>) {
+        DebuggerWindow::new(gb, app).present();
     }
 
     pub fn init_window(&mut self, gb: Arc<Mutex<Gameboy>>, rx: Arc<Mutex<Receiver<Vec<u32>>>>) {
@@ -53,6 +54,8 @@ impl Window {
             program: None,
         }));
 
+        gio::resources_register_include!("debugger.gresource")
+            .expect("Failed to register resources.");
         application.connect_activate(clone!(
             @weak render_context, @weak gb => move | app | Self::init_window_gtk(gb, render_context, app)
         ));
@@ -135,13 +138,7 @@ impl Window {
         match frame.draw(
             &rect_vertices,
             &rect_indices,
-            &(render_context
-                .program
-                .as_ref()
-                .unwrap()
-                .to_owned()
-                .as_ref()
-                .borrow()),
+            &(render_context.program.as_ref().unwrap().as_ref().borrow()),
             &uniforms,
             &Default::default(),
         ) {
@@ -152,44 +149,6 @@ impl Window {
         gtk::Inhibit(true)
     }
 
-    fn debugger_draw(gb: Arc<Mutex<Gameboy>>, text_view: &TextView, _text_mark_end: &TextMark) {
-        let gb_ref = gb.lock().unwrap();
-        let mut current_instruction = gb_ref.mem_map.read_u8(gb_ref.cpu.registers.pc as usize);
-        let extended_instruction: bool = current_instruction == 0xCB;
-
-        if extended_instruction {
-            current_instruction = gb_ref.mem_map.read_u8(gb_ref.cpu.registers.pc as usize + 1);
-        }
-        let str_instruction = match if extended_instruction {
-            gb_ref
-                .debugger
-                .translation_table_extended
-                .get(&current_instruction)
-        } else {
-            gb_ref.debugger.translation_table.get(&current_instruction)
-        } {
-            Some(instruction) => instruction,
-            None => "Unknown instruction",
-        };
-
-        let debug_text = format!("{:x?}: {:x?}                            A:{:x?} F:{:x?} B:{:x?} C:{:x?} D:{:x?} E:{:x?} H:{:x?} L:{:x?} LY:{:x?} SP:{:x?}",
-            gb_ref.cpu.registers.pc - 1,
-            str_instruction,
-            gb_ref.cpu.registers.a,
-            u8::from(gb_ref.cpu.registers.f),
-            gb_ref.cpu.registers.b,
-            gb_ref.cpu.registers.c,
-            gb_ref.cpu.registers.d,
-            gb_ref.cpu.registers.e,
-            gb_ref.cpu.registers.h,
-            gb_ref.cpu.registers.l,
-            gb_ref.mem_map.ly,
-            gb_ref.cpu.registers.sp
-        );
-
-        text_view.buffer().set_text(&debug_text);
-    }
-
     fn init_window_gtk(
         gb: Arc<Mutex<Gameboy>>,
         render_context: Rc<RefCell<RenderContext>>,
@@ -197,46 +156,65 @@ impl Window {
     ) {
         let window = ApplicationWindow::builder()
             .application(application)
-            .default_width(WINDOW_WIDTH as i32 * SCALE as i32 * 2)
+            .default_width(WINDOW_WIDTH as i32 * SCALE as i32)
             .default_height(WINDOW_HEIGHT as i32 * SCALE as i32)
+            .resizable(false)
             .title("AGER")
             .build();
         let glarea = GLArea::builder()
-            .width_request(50)
-            .hexpand(false)
+            .width_request(100)
+            .hexpand(true)
             .hexpand_set(false)
             .build();
         let paned: Paned = PanedBuilder::new()
             .orientation(gtk::Orientation::Horizontal)
             .build();
-        let text_view: TextView = TextViewBuilder::new().hexpand_set(true).build();
-        let scroll_window: ScrolledWindow = ScrolledWindowBuilder::new().hexpand_set(true).build();
 
-        scroll_window.set_child(Some(&text_view));
         paned.set_start_child(Some(&glarea));
-        paned.set_end_child(Some(&scroll_window));
-
-        /*window.connect("key_press_event", false, |values| {
-            // Get the key pressed code from value
-            let keyval = values[1].get::<u32>().unwrap();
-
-            println!("Keyval: {}", keyval);
-            Some(glib::value::Value::from_type(glib::types::Type::BOOL))
-        });*/
 
         let event_controller = EventControllerKeyBuilder::new().build();
+
+        event_controller.connect_key_released(
+            clone!(@strong gb => move |_event_controller, keyval, _keycode, _state| {
+                let mut gb = gb.lock().unwrap();
+
+                match keyval {
+                    gdk::Key::a => {
+                        gb.mem_map.jpad.select_action = false;
+                        gb.mem_map.jpad.p10_in = false;
+                        gb.mem_map.iflag.hi_lo = true;
+                    },
+                    _ => {}
+                }
+            }),
+        );
 
         event_controller.connect_key_pressed(
             clone!(@strong gb => move |_event_controller, keyval, _keycode, _state| {
                 let mut gb = gb.lock().unwrap();
 
                 match keyval {
+                    gdk::Key::a => {
+                        gb.mem_map.jpad.select_action = true;
+                        gb.mem_map.jpad.p10_in = true;
+                        gb.mem_map.iflag.hi_lo = true;
+                        println!("Key A pressed");
+                    },
                     gdk::Key::p => {
                         gb.debugger.state.paused = !gb.debugger.state.paused;
                         println!("Paused: {}", gb.debugger.state.paused);
                     },
                     gdk::Key::m => {
                         gb.debugger.state.step = true;
+                    },
+                    gdk::Key::i => {
+                        gb.cpu.ime = !gb.cpu.ime;
+                    },
+                    gdk::Key::o => {
+                        gb.debugger.state.dumping = !gb.debugger.state.dumping;
+                    },
+                    gdk::Key::F1 => {
+
                     }
                     _ => {}
                 }
@@ -249,8 +227,8 @@ impl Window {
         window.present();
 
         let facade: gtk4_glium::GtkFacade = gtk4_glium::GtkFacade::from_glarea(&glarea).unwrap();
-        let vertex_shader_src = include_str!("../res/shaders/default.vs");
-        let fragment_shader_src = include_str!("../res/shaders/default.fs");
+        let vertex_shader_src = include_str!("../../../../res/shaders/default.vs");
+        let fragment_shader_src = include_str!("../../../../res/shaders/default.fs");
 
         render_context.borrow_mut().program = Some(Rc::new(RefCell::new(
             glium::Program::from_source(&facade, vertex_shader_src, fragment_shader_src, None)
@@ -262,20 +240,7 @@ impl Window {
         ));
 
         let frame_time = Duration::new(0, 1_000_000_000 / 60);
-        let debugger_interval = Duration::new(0, 1_000_000_000 / 60);
         let gb_clone = gb.clone();
-        let text_mark_end =
-            text_view
-                .buffer()
-                .create_mark(None, &text_view.buffer().end_iter(), false);
-
-        glib::source::timeout_add_local(
-            debugger_interval,
-            clone!(@weak gb_clone => @default-return glib::source::Continue(true), move || {
-                Window::debugger_draw(gb_clone, &text_view, &text_mark_end);
-                glib::source::Continue(true)
-            }),
-        );
 
         glib::source::timeout_add_local(
             frame_time,
@@ -284,5 +249,6 @@ impl Window {
                 glib::source::Continue(true)
             }),
         );
+        GameWindow::create_sub_windows(application, gb);
     }
 }

@@ -15,3 +15,7 @@ glib = "0.15.12"
 gio = "0.15.12"
 cgmath = "0.18.0"
 gdk = "0.17.0"
+glib-build-tools = "0.19.0"
+
+[build-dependencies]
+glib-build-tools = "0.19.0"

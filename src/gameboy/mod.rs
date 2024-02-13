@@ -13,6 +13,7 @@ use mbc::mbc0::MBC0;
 use mbc::mbc1::MBC1;
 use memory::Memory;
 use registers::FRegister;
+use std::borrow::BorrowMut;
 use std::fs::File;
 use std::io::prelude::*;
 use timer::Timer;
@@ -71,7 +72,7 @@ impl Gameboy {
         self.cpu.registers.e = 0xd8;
         self.cpu.registers.h = 0x01;
         self.cpu.registers.l = 0x4d;
-        self.mem_map.boot_rom_disable = 0;
+        self.mem_map.boot_rom_disable = 1;
         self.cpu.registers.sp = 0xFFFE;
     }
 
@@ -83,6 +84,8 @@ impl Gameboy {
         let mut int_address: u16 = 0;
 
         if !self.cpu.ime {
+            // TODO: Check if this is correct
+            // println!("Interrupts disabled.");
             self.clear_interrupts();
             return 0;
         }
@@ -118,13 +121,56 @@ impl Gameboy {
         self.cpu.ime = false;
         self.cpu.push_word(&mut self.mem_map, self.cpu.registers.pc);
         self.cpu.registers.pc = int_address;
-        10
+        // println!("Interrupt disabled by hardware.");
+        20
     }
 
     pub fn timer_cycle(&mut self, cycles: usize) {
         if self.timer.increment_tima(&mut self.mem_map, cycles) {
             self.mem_map.iflag.timer_overflow = true;
         }
+    }
+
+    pub fn print_debug_cycle(&mut self) {
+        let mut current_instruction = self.mem_map.read_u8(self.cpu.registers.pc as usize);
+        let extended_instruction: bool = current_instruction == 0xCB;
+
+        if extended_instruction {
+            current_instruction = self.mem_map.read_u8(self.cpu.registers.pc as usize + 1);
+        }
+        let str_instruction = match if extended_instruction {
+            self.debugger
+                .translation_table_extended
+                .get(&current_instruction)
+        } else {
+            self.debugger.translation_table.get(&current_instruction)
+        } {
+            Some(instruction) => instruction,
+            None => "Unknown instruction",
+        };
+
+        let debug_text: String = format!("{:x?}: {:x?}  ({:x?})                           A:{:x?} F:{:x?} B:{:x?} C:{:x?} D:{:x?} E:{:x?} H:{:x?} L:{:x?} LY:{:x?} SP:{:x?}\nIME: {}\n*PC: {:x?} *PC+1 {:x?} *PC+2 {:x?} *PC+3 {:x?}\nJoystick {:x?}",
+        self.cpu.registers.pc - 1,
+            str_instruction,
+            current_instruction,
+            self.cpu.registers.a,
+            u8::from(self.cpu.registers.f),
+            self.cpu.registers.b,
+            self.cpu.registers.c,
+            self.cpu.registers.d,
+            self.cpu.registers.e,
+            self.cpu.registers.h,
+            self.cpu.registers.l,
+            self.mem_map.ly,
+            self.cpu.registers.sp,
+            self.cpu.ime,
+            self.mem_map.read_u8(self.cpu.registers.pc as usize - 1),
+            self.mem_map.read_u8(self.cpu.registers.pc as usize ),
+            self.mem_map.read_u8(self.cpu.registers.pc as usize + 1),
+            self.mem_map.read_u8(self.cpu.registers.pc as usize + 2),
+            u8::from(self.mem_map.jpad)
+        );
+        println!("{}", debug_text);
     }
 
     pub fn cycle(&mut self, delta: u64) {
@@ -149,6 +195,9 @@ impl Gameboy {
             }
             cpu_cycles += self.check_interrupts();
             if !self.mem_map.halted {
+                if self.debugger.state.dumping {
+                    self.print_debug_cycle();
+                }
                 cpu_cycles += self.cpu.cycle(&mut self.mem_map);
                 self.timer.increment_div(&mut self.mem_map, cpu_cycles);
             } else {

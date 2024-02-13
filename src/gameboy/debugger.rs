@@ -3,6 +3,7 @@ use std::collections::HashMap;
 pub struct DebuggerState {
     pub paused: bool,
     pub step: bool,
+    pub dumping: bool,
 }
 
 pub struct Debugger {
@@ -17,6 +18,7 @@ impl Debugger {
             state: DebuggerState {
                 paused: false,
                 step: false,
+                dumping: false,
             },
             translation_table: HashMap::from([
                 (0x0, "NOP".to_string()),
