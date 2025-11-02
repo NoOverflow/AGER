@@ -1,14 +1,11 @@
+use glib::subclass::types::ObjectSubclassExt;
+use glib::subclass::types::ObjectSubclassIsExt;
 use glib::Object;
-use glium::Program;
 use gtk::glib;
 use gtk::prelude::*;
-use gtk::ApplicationWindow;
 use gtk::TextMark;
 use gtk::TextView;
 use gtk4 as gtk;
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
 
 use crate::gameboy::Gameboy;
@@ -21,19 +18,19 @@ glib::wrapper! {
                     gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
 }
 
-#[derive(Clone)]
-pub struct RenderContext {
-    pub render_texture: Option<Rc<RefCell<glium::texture::texture2d::Texture2d>>>,
-    pub rx: Arc<Mutex<Receiver<Vec<u32>>>>,
-    pub program: Option<Rc<RefCell<Program>>>,
-}
-
 impl DebuggerWindow {
-    pub fn new(gb: Arc<Mutex<Gameboy>>, app: &gtk::Application) -> Self {
+    pub fn new(app: &gtk::Application) -> Self {
         Object::builder()
             .property("application", app)
             .build()
+            .to_owned()
             .unwrap()
+    }
+
+    pub fn set_state(&self, gb: Arc<Mutex<Gameboy>>) {
+        let imp = imp::DebuggerWindow::from_instance(self);
+        let gb: Option<std::ptr::NonNull<Arc<Mutex<Gameboy>>>> =
+            unsafe { self.data::<Arc<Mutex<Gameboy>>>("gb") };
     }
 
     fn debugger_draw(gb: Arc<Mutex<Gameboy>>, text_view: &TextView, _text_mark_end: &TextMark) {

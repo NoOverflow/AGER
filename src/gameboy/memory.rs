@@ -314,6 +314,34 @@ impl Memory {
         }
     }
 
+    // To be used for efficient read
+    // Warning: start_adress and start_address + length have to be in the same
+    // memory "zone"
+    pub fn read_u8_slice(&self, start_address: usize, length: usize) -> Vec<u8> {
+        let mut ret: Vec<u8> = vec![0; length];
+
+        if self.rom_address_bound.contains(&start_address) {
+            if self.boot_rom_disable == 0 && start_address <= 0xFF {
+                // During boot, any read from value 0x0 to 0xFF is redirected to the boot rom
+                ret.copy_from_slice(&self.boot[start_address..start_address + length]);
+            }
+            ret.copy_from_slice(&self.rom.read_u8_range(start_address, length));
+        } else if self.hram_address_bound.contains(&start_address) {
+            ret.copy_from_slice(&self.hram[start_address..start_address + length]);
+        } else if self.vram_address_bound.contains(&start_address) {
+            ret.copy_from_slice(&self.vram[start_address..start_address + length]);
+        } else if self.wram_address_bound.contains(&start_address) {
+            ret.copy_from_slice(&self.wram[start_address..start_address + length]);
+        } else if self.oam_address_bound.contains(&start_address) {
+            ret.copy_from_slice(&self.oam[start_address..start_address + length]);
+        } else if self.io_address_bound.contains(&start_address) || start_address == 0xFFFF {
+            for i in 0..length {
+                ret[i] = self.read_io_u8(start_address + i);
+            }
+        }
+        ret
+    }
+
     pub fn read_u8(&self, address: usize) -> u8 {
         if self.rom_address_bound.contains(&address) {
             if self.boot_rom_disable == 0 && address <= 0xFF {

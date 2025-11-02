@@ -1202,7 +1202,6 @@ impl Cpu {
                 Instructions::set(7, &mut self.registers.a);
                 8
             }
-            _ => panic!("{:#02x} is not an implemented extended opcode.", op_code),
         }
     }
 
@@ -2149,7 +2148,7 @@ impl Cpu {
             }
             0x9E => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
-                let mut v: u8 = mem.read_u8(address as usize);
+                let v: u8 = mem.read_u8(address as usize);
 
                 Instructions::sbc(&mut self.registers.a, v, &mut self.registers.f);
                 8
@@ -2738,21 +2737,6 @@ impl Cpu {
     pub fn cycle(&mut self, mem: &mut Memory) -> usize {
         let inst_op_code: u8 = self.fetch_u8(mem);
 
-        /* println!("{:x?}: {:x?}                            A:{:x?} F:{:x?} B:{:x?} C:{:x?} D:{:x?} E:{:x?} H:{:x?} L:{:x?} LY:{:x?} SP:{:x?}",
-            self.registers.pc - 1,
-            inst_op_code,
-            self.registers.a,
-            u8::from(self.registers.f),
-            self.registers.b,
-            self.registers.c,
-            self.registers.d,
-            self.registers.e,
-            self.registers.h,
-            self.registers.l,
-            mem.ly,
-            self.registers.sp
-
-        ); */
         self.call(mem, inst_op_code) as usize
     }
 }

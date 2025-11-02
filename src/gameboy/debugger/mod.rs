@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+pub mod gdb_server;
+
 pub struct DebuggerState {
     pub paused: bool,
     pub step: bool,

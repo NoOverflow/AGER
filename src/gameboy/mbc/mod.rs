@@ -11,4 +11,5 @@ pub enum MbcId {
 pub trait MemoryBankController {
     fn read_u8(&self, address: usize) -> u8;
     fn write_u8(&mut self, address: usize, v: u8);
+    fn read_u8_range(&self, start_address: usize, length: usize) -> Vec<u8>;
 }

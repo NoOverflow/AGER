@@ -24,4 +24,11 @@ impl MemoryBankController for MBC0 {
     fn write_u8(&mut self, address: usize, v: u8) {
         self.rom[address as usize] = v;
     }
+
+    fn read_u8_range(&self, start_address: usize, length: usize) -> Vec<u8> {
+        let mut ret: Vec<u8> = vec![0; length];
+
+        ret.copy_from_slice(&self.rom[start_address..start_address + length]);
+        ret
+    }
 }

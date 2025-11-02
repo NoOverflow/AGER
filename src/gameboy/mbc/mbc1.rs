@@ -120,4 +120,19 @@ impl MemoryBankController for MBC1 {
             panic!("Unknown MBC1 write address {:#02x}", address);
         }
     }
+
+    fn read_u8_range(&self, start_address: usize, length: usize) -> Vec<u8> {
+        let mut ret: Vec<u8> = vec![0; length];
+
+        if self.rom_bank_0_range.contains(&start_address) {
+            ret.copy_from_slice(&self.rom[start_address..start_address + length]);
+        } else if self.ram_banks_range.contains(&start_address) {
+            todo!();
+        } else if self.rom_banks_range.contains(&start_address) {
+            todo!();
+        } else {
+            panic!("Unknown MBC1 read address {:#02x}", start_address);
+        }
+        ret
+    }
 }

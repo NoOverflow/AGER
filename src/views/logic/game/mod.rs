@@ -1,5 +1,6 @@
 use cgmath::Matrix4;
 use gio::prelude::*;
+use glib::BoxedAnyObject;
 use glium::backend::{Context, Facade};
 use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter};
 use glium::{implement_vertex, uniform, Frame, Program, Surface, VertexBuffer};
@@ -43,7 +44,11 @@ impl GameWindow {
     }
 
     fn create_sub_windows(app: &gtk::Application, gb: Arc<Mutex<Gameboy>>) {
-        DebuggerWindow::new(gb, app).present();
+        let debug_window = DebuggerWindow::new(app);
+
+        unsafe { debug_window.set_data("gb", BoxedAnyObject::new(gb.clone())) };
+        debug_window.set_state(gb);
+        debug_window.present();
     }
 
     pub fn init_window(&mut self, gb: Arc<Mutex<Gameboy>>, rx: Arc<Mutex<Receiver<Vec<u32>>>>) {

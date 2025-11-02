@@ -1,6 +1,7 @@
 mod gameboy;
 pub mod views;
 
+use gameboy::debugger::gdb_server::GdbServer;
 use gameboy::Gameboy;
 use spin_sleep::LoopHelper;
 use std::sync::mpsc::channel;
@@ -49,6 +50,12 @@ fn main() {
         thread::spawn(move || {
             clock_loop(gb_clone, tx);
         });
+    }
+
+    {
+        let gb_clone = gb.clone();
+
+        GdbServer::new(gb_clone);
     }
 
     {

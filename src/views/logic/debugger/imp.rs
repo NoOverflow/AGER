@@ -1,12 +1,23 @@
+use std::borrow::Borrow;
+use std::cell::Ref;
+use std::sync::{Arc, Mutex};
+
 use glib::subclass::InitializingObject;
-use gtk::prelude::*;
+use gtk::ffi::GtkButton;
 use gtk::subclass::prelude::*;
 use gtk::{glib, CompositeTemplate};
+use gtk::{prelude::*, Button};
 use gtk4 as gtk;
+
+use crate::gameboy::Gameboy;
 
 #[derive(CompositeTemplate, Default)]
 #[template(resource = "/org/gtk_rs/example/window.ui")]
-pub struct DebuggerWindow {}
+pub struct DebuggerWindow {
+    pub count: u8,
+    pub gb: Option<Arc<Mutex<Gameboy>>>, //#[template_child]
+                                         //pub button: TemplateChild<Button>,
+}
 
 #[glib::object_subclass]
 impl ObjectSubclass for DebuggerWindow {
@@ -27,6 +38,8 @@ impl ObjectSubclass for DebuggerWindow {
 impl ObjectImpl for DebuggerWindow {
     fn constructed(&self, obj: &Self::Type) {
         self.parent_constructed(obj);
+
+        //self.button.connect_clicked(move |button| {});
     }
 }
 
