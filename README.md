@@ -4,6 +4,8 @@ A Gameboy emulator coded in Rust, serves as a first project to learn Rust.
 
 The goal is to implement a Gameboy emulator that replicates a real machine as closely as can be (especially in the typical gameboy quirks: OAM trash write, HALT skip instructions...)
 
+<img width="1498" height="1207" alt="image" src="https://github.com/user-attachments/assets/26a87590-7124-4bfc-bfb6-754d178b739c" />
+
 ## Features planned
 - Debugger with full control flow capabilities (Step, Back)
 - Memory editor and live viewer
