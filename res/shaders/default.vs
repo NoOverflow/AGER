@@ -1,4 +1,4 @@
-#version 450
+#version 460
 in vec2 position;
 uniform mat4 projection;
 out vec2 v_tex_coords;

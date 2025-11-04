@@ -2,7 +2,6 @@ use glib::Object;
 use glium::Program;
 use gtk::glib;
 use gtk::prelude::*;
-use gtk::ApplicationWindow;
 use gtk::TextMark;
 use gtk::TextView;
 use gtk4 as gtk;
@@ -29,7 +28,7 @@ pub struct RenderContext {
 }
 
 impl DebuggerWindow {
-    pub fn new(gb: Arc<Mutex<Gameboy>>, app: &gtk::Application) -> Self {
+    pub fn new(_: Arc<Mutex<Gameboy>>, app: &gtk::Application) -> Self {
         Object::builder()
             .property("application", app)
             .build()

@@ -2149,7 +2149,7 @@ impl Cpu {
             }
             0x9E => {
                 let address: u16 = BinUtils::u16_from_u8s(self.registers.h, self.registers.l);
-                let mut v: u8 = mem.read_u8(address as usize);
+                let v: u8 = mem.read_u8(address as usize);
 
                 Instructions::sbc(&mut self.registers.a, v, &mut self.registers.f);
                 8

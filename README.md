@@ -31,3 +31,12 @@ The goal is to implement a Gameboy emulator that replicates a real machine as cl
 ## Sources used:
 - http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf
 - https://gbdev.io/pandocs/
+
+pkg-config
+libglib2.0-dev
+libcairo2-dev
+libgraphene-1.0-dev
+libpango1.0-dev
+libgdk-pixbuf-2.0-dev
+libgtk-4-dev
+libgtk-3-dev

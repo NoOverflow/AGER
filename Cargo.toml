@@ -11,10 +11,8 @@ glium = "^0.31.0"
 gl_loader = "^0.1.2"
 gtk4_glium = "0.1.1"
 gtk4 = "0.4.8"
-glib = "0.15.12"
 gio = "0.15.12"
 cgmath = "0.18.0"
-gdk = "0.17.0"
 glib-build-tools = "0.19.0"
 
 [build-dependencies]

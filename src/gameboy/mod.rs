@@ -13,7 +13,6 @@ use mbc::mbc0::MBC0;
 use mbc::mbc1::MBC1;
 use memory::Memory;
 use registers::FRegister;
-use std::borrow::BorrowMut;
 use std::fs::File;
 use std::io::prelude::*;
 use timer::Timer;

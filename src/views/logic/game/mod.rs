@@ -1,8 +1,11 @@
 use cgmath::Matrix4;
 use gio::prelude::*;
+use glib::SignalHandlerId;
+use glib::translate::FromGlib;
+use glium::backend::glutin::headless::GlutinBackend;
 use glium::backend::{Context, Facade};
 use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter};
-use glium::{implement_vertex, uniform, Frame, Program, Surface, VertexBuffer};
+use glium::{Frame, Program, Surface, VertexBuffer, glutin, implement_vertex, uniform};
 use gtk::builders::{EventControllerKeyBuilder, PanedBuilder};
 use gtk::gdk::{self, GLContext};
 use gtk::glib::clone;
@@ -72,8 +75,8 @@ impl GameWindow {
         let mut frame = Frame::new(context.clone(), context.get_framebuffer_dimensions());
         let buffer: Vec<u32> = render_context.rx.lock().unwrap().recv().unwrap();
 
-        implement_vertex!(Vertex, position);
 
+        implement_vertex!(Vertex, position);
         let (rect_vertices, rect_indices) = {
             let ib_data: Vec<u16> = vec![0, 1, 2, 1, 3, 2];
             let vb: VertexBuffer<Vertex> = glium::VertexBuffer::empty_dynamic(facade, 4).unwrap();
@@ -170,6 +173,8 @@ impl GameWindow {
             .orientation(gtk::Orientation::Horizontal)
             .build();
 
+
+        glarea.set_required_version(4, 6);
         paned.set_start_child(Some(&glarea));
 
         let event_controller = EventControllerKeyBuilder::new().build();
@@ -227,11 +232,12 @@ impl GameWindow {
         window.present();
 
         let facade: gtk4_glium::GtkFacade = gtk4_glium::GtkFacade::from_glarea(&glarea).unwrap();
+
         let vertex_shader_src = include_str!("../../../../res/shaders/default.vs");
         let fragment_shader_src = include_str!("../../../../res/shaders/default.fs");
 
         render_context.borrow_mut().program = Some(Rc::new(RefCell::new(
-            glium::Program::from_source(&facade, vertex_shader_src, fragment_shader_src, None)
+            glium::Program::from_source(&facade, vertex_shader_src, fragment_shader_src, None, )
                 .unwrap(),
         )));
 
@@ -249,6 +255,6 @@ impl GameWindow {
                 glib::source::Continue(true)
             }),
         );
-        GameWindow::create_sub_windows(application, gb);
+        //GameWindow::create_sub_windows(application, gb);
     }
 }
