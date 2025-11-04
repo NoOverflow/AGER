@@ -1,11 +1,8 @@
 use cgmath::Matrix4;
 use gio::prelude::*;
-use glib::SignalHandlerId;
-use glib::translate::FromGlib;
-use glium::backend::glutin::headless::GlutinBackend;
 use glium::backend::{Context, Facade};
 use glium::uniforms::{MagnifySamplerFilter, MinifySamplerFilter};
-use glium::{Frame, Program, Surface, VertexBuffer, glutin, implement_vertex, uniform};
+use glium::{Frame, Program, Surface, VertexBuffer, implement_vertex, uniform};
 use gtk::builders::{EventControllerKeyBuilder, PanedBuilder};
 use gtk::gdk::{self, GLContext};
 use gtk::glib::clone;
